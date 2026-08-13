@@ -4,7 +4,24 @@ bin/
 obj/
 *.user
 *.suo
+*.userosscache
+*.sln.docstates
+[Bb]in/
+[Oo]bj/
+
+# NuGet - paquetes restaurables (no se suben, son pesados)
+[Pp]ackages/
+!*.nuget.props
+*.nupkg
+*.snupkg
+**/packages/repositories.config
 
 # Otros
 [Dd]ebug/
 [Rr]elease/
+[Tt]est[Rr]esult/
+[Bb]uild[Ll]og.*
+*.pdb
+*.cache
+*~
+*.tmp
