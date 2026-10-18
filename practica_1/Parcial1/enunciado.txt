@@ -1,0 +1,15 @@
+Crear un programa (librería libParcial1) que pida el valor de la nota 1 (n1) equivalente al valor de la nota 2 (n2) y hallar las demás notas teniendo en cuenta las siguientes reglas:
+
+La nota 1 (n1) equivale al valor de la nota 2 (n2) menos 6 veces la nota teniendo en cuenta las clases (ver figura) en el archivo: clsParcial1.
+La nota 3 (n3) equivale al valor de n2 más un noveno de n2, más la raíz cuadrada de n1, más 6 menos la raíz cuadrada de n2. • La división entre 10 del resultado obtenido de n2, más un cuarto de n4 que equivale a n3 quinta más elevado al cuadrado, más la nota 4 (n4) equivale a la raíz cuadrada de la resta de n1 y el residuo de 10 entre n2.
+
+Grabar la información validada de la persona tipo pregrado en el archivo (estPreg.txt), separando los datos con el carácter ; por cada registro grabado, conservando los registros anteriores. Ubicar el archivo en la misma carpeta del proyecto.
+
+Crear un único librería (libParcial1) con todas las clases notas en el archivo: clsParcial1.
+
+Se tiene la siguiente estructura jerárquica de clases:
+
+clsPersona(abst) tiene las características de:
+codigo(e), nroDoc(e), Nombre(c) y Error(c) con los métodos abstractos: Grabar(): clsEstudiante(abst)
+
+tiene las características de tipoEstud(c), sede(c), n1(r) y n2(r). clsPregrado tiene como características: programa(c), n3(r) y n4(r) y la clase; clsExtension con la característica: cursos(c) y nd(r). Nota: (c) Cadena, (r) Entero y (r)real. Realizar sobrecarga de los constructores. (abst) abstracta

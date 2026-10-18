@@ -1,0 +1,2 @@
+1;1032456789;Juan Perez;PREGRADO;Medellin;Ingenieria de Sistemas;8,973665;10;15,10672;67,35014
+2;987654321;Maria Gomez;PREGRADO;Itagui;Tecnologia en Sistemas;6,832815;20;26,83619;128,5444
