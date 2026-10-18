@@ -1,0 +1,6 @@
+Area:94,45045
+Perimetro:90,77768
+Area:2,303367
+Perimetro:44,00502
+Area:23,03367
+Perimetro:120,0212

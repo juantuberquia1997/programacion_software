@@ -1,0 +1,131 @@
+jQuery( function () {
+  // pedirValores();
+  $("#btnLimpiar").on("click", function () {
+    alert("Limpiar");
+  });
+  $("#btnProcesar").on("click", function () {
+    alert("Procesar");
+  });
+});
+
+function fnro( vr ) {
+  return vr.toLocaleString( 'es-CO', {
+    minimumFractionDigits: 2, // Mínimo de decimales
+    maximumFractionDigits: 2  // Máximo de decimales
+  });
+}
+
+function validarVr( valor, txt ) {
+  if ( isNaN( valor ) || parseFloat( valor, 10 ) <= 0 || valor.trim() == "" ) {
+    alert( "Error, valor del tipo: " + txt + ", no es válido" );
+    return true;
+  }
+  else {
+    return false;
+  }
+}
+
+function pedirValores() {
+  let vrCarta = prompt( "¿Cuál es el valor de cada copia: Carta:?", "" );
+  let vrOficl = prompt( "¿Cuál es el valor de cada copia: Oficio:?", "" );
+  let vrExtOf = prompt( "¿Cuál es el valor de cada copia: ExtraOficio:?", "" );
+  // Verificamos si el usuario ingresó un valor
+  if ( validarVr( vrCarta, "Carta" ) || validarVr( vrOficl, "Oficio" ) || validarVr( vrExtOf, "ExtraOficio" ) ) {
+    return pedirValores();
+  }
+  else {
+    $("#txtVrCarta").val( vrCarta );
+    $("#txtVrOfic").val( vrOficl );
+    $("#txtVrExtOfic").val( vrExtOf );
+  }
+}
+
+function limpiarTotal() {
+  $("#txtCantCarta").val("");
+  $("#txtCantOfic").val("");
+  $("#txtCantExtOfic").val("");
+  limpiarRpta();
+}
+
+function limpiarRpta() {
+  $("#txtSubTotCarta").val("");
+  $("#txtSubTotOfic").val("");
+  $("#txtSubTotExtOfic").val("");
+  $("#txtSubTot").val("");
+  $("#txtPorcDsc").val("");
+  $("#txtDscto").val("");
+  $("#txtIva").val("");
+  $("#txtAPagar").val("");
+  $("#txtCantCarta").trigger("focus");
+}
+
+//La función tiene que ser asíncrona para que pueda funcionar el fetch al invocar el servicio
+async function Procesar() { //Definir vbles de entrada - let: vble local, var vble global
+  let vrCa = $("#txtVrCarta").val();
+  let vrOf = $("#txtVrOfic").val();
+  let vrEx = $("#txtVrExtOfic").val();
+  let kCa = $("#txtCantCarta").val();
+  let kOf = $("#txtCantOfic").val();
+  let kEx = $("#txtCantExtOfic").val();
+
+  //Validar
+  if ( vrCa == undefined || isNaN( vrCa ) ) {
+    alert( "Error, valor tipo carta, no válido" );
+    $("#txtVrCarta").trigger("focus");
+    return;
+  }
+  if ( vrOf == undefined || isNaN( vrOf ) ) {
+    alert( "Error, valor tipo oficio, no válido" );
+    $("#txtVrOfic").trigger("focus");
+    return;
+  }
+  if ( vrEx == undefined || isNaN( vrEx ) ) {
+    alert( "Error, valor tipo extraOficio, no válido" );
+    $("#txtVrExtOfic").trigger("focus");
+    return;
+  }
+
+  limpiarRpta();
+
+  //Crear la estructura de Json, con los datos de entrada deben coincidir con los nombres de las propiedades del modelo
+  let datosOut = {
+    vrC: vrCa,
+    vrO: vrOf,
+    vrE: vrEx,
+    kC: kCa,
+    kO: kOf,
+    kE: kEx
+  };
+
+  //Invocar el servicio - Enviar info y recuperar respuestas
+  try { //Utilizar el método: fetch de JavaScript (Asíncrono) que conecta con la API con path de donde corre el servicio
+    const retornoSrv = await fetch( dir + "servSusCopias", // fetch: realiza(envía) peticiones de red asíncronas hacia un servidor o API
+    { method: "POST",              // proporciona una forma fácil y lógica de obtener recursos de forma asíncrona por la red
+      mode: "cors",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify( datosOut ), //JSON.stringify: Convierte el texto retornoSrv, que está como un texto JavaScript, en un texto de formato Json
+    });
+
+    //Recuperar y leer la respuesta del servicio
+    const Rpta = await retornoSrv.json(); //En la constante Rpta, queda la respuesta del servicio, en formato: Json
+    let error = Rpta.Error;
+    if ( error != "" ) {
+      alert( "Error, " + error );
+      return;
+    }
+
+    $("#txtSubTotCarta").val( fnro(Rpta.vrTotC) );
+    $("#txtSubTotOfic").val( fnro(Rpta.vrTotO) );
+    $("#txtSubTotExtOfic").val( fnro(Rpta.vrTotE) );
+    $("#txtSubTot").val( fnro(Rpta.vrSubTot) );
+    $("#txtPorcDsc").val( fnro(Rpta.porcDscto) );
+    $("#txtDscto").val( fnro(Rpta.vrDscto) );
+    $("#txtIva").val( fnro(Rpta.vrIva) );
+    $("#txtAPagar").val( fnro(Rpta.vrAPag) );
+  }
+  catch ( e ) {
+    alert( "Error, " + e );
+  }
+}

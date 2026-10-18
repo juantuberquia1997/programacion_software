@@ -1,0 +1,133 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <title>Práctica # 3 – API WEB</title>
+    <style>
+        .txt-titulo {
+            font-family: 'Comic Sans MS';
+            font-size: 20px;
+            color: #9C2007;
+            line-height: 1.5;
+            text-align: center;
+            font-style: italic;
+            font-weight: bold;
+        }
+
+        .txt-subtit {
+            font-family: cursive;
+            font-size: 16px;
+            color: #291980;
+            text-align: center;
+            font-style: italic;
+            font-weight: bold;
+        }
+
+        .txt-dere {
+            text-align: right;
+        }
+
+        .txt-cent {
+            text-align: center;
+        }
+
+        table {
+            border-collapse: collapse;
+        }
+
+        table, th, td {
+            border: 2px solid #000;
+            padding: 4px;
+        }
+
+        .sin-borde, .sin-borde td {
+            border: none;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Tabla 2 x 1, sin borde, 70%, centrada -->
+    <table class="sin-borde" width="70%" align="center">
+        <tr>
+            <td class="txt-titulo">Facturación Fotocopias</td>
+        </tr>
+        <tr>
+            <td class="txt-subtit">Datos Facturación</td>
+        </tr>
+    </table>
+
+    <br />
+
+    <!-- Tabla 8 x 4, borde = 2, 90%, centrada -->
+    <table width="90%" align="center" class="txt-cent">
+        <tr>
+            <th>Tipo Copia</th>
+            <th>Vr. Unit</th>
+            <th>Cantidad</th>
+            <th>Valor</th>
+        </tr>
+        <tr>
+            <td colspan="4"></td>
+        </tr>
+        <tr>
+            <td>Carta</td>
+            <td><input type="text" id="txtVrCarta" value="100" disabled /></td>
+            <td><input type="text" id="txtCantCarta" /></td>
+            <td><input type="text" id="txtSubTotCarta" disabled /></td>
+        </tr>
+        <tr>
+            <td>Oficio</td>
+            <td><input type="text" id="txtVrOfic" value="200" disabled /></td>
+            <td><input type="text" id="txtCantOfic" /></td>
+            <td><input type="text" id="txtSubTotOfic" disabled /></td>
+        </tr>
+        <tr>
+            <td>ExtraOficio</td>
+            <td><input type="text" id="txtVrExtraOfic" value="300" disabled /></td>
+            <td><input type="text" id="txtCantExtraOfic" /></td>
+            <td><input type="text" id="txtSubTotExtraOfic" disabled /></td>
+        </tr>
+        <tr>
+            <td colspan="4"></td>
+        </tr>
+        <tr>
+            <td colspan="4" class="txt-cent">
+                <input type="button" id="btnLimpiar" value="Limpiar" />
+                <input type="button" id="btnProcesar" value="Procesar" />
+            </td>
+        </tr>
+    </table>
+
+    <br />
+
+    <!-- Tabla 5 x 4, borde = 2, 70%, centrada -->
+    <table width="70%" align="center">
+        <tr>
+            <td colspan="4" class="txt-cent">Datos de Cobro</td>
+        </tr>
+        <tr>
+            <td class="txt-dere">SubTotal:</td>
+            <td><input type="text" id="txtSubTot" readonly /></td>
+            <td></td>
+            <td></td>
+        </tr>
+        <tr>
+            <td class="txt-dere">% Dscto:</td>
+            <td><input type="text" id="txtPorcDsc" readonly /></td>
+            <td class="txt-dere">Vr. Dscto:</td>
+            <td><input type="text" id="txtDscto" readonly /></td>
+        </tr>
+        <tr>
+            <td class="txt-dere">Vr. IVA:</td>
+            <td><input type="text" id="txtIva" readonly /></td>
+            <td class="txt-dere">Valor a Pagar:</td>
+            <td><input type="text" id="txtAPagar" readonly /></td>
+        </tr>
+    </table>
+
+    
+    <script src="../Scripts/jquery-3.7.0.min.js"></script>
+    <script src="../scripts_form/ctlFrmFact.js?v=1"></script>
+</body>
+</html>
