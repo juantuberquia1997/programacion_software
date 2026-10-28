@@ -6,19 +6,19 @@ jQuery(function () {
 
     //Registrar los botones para responder al evento click
     $("#btnAgre").on("click", function () {
-        alert("Agregar");
+        alerta("Agregar");
         //Agregar();
     });
     $("#btnModi").on("click", function () {
-        alert("Modificar");
+        alerta("Modificar");
         //Modificar();
     });
     $("#btnBusc").on("click", function () {
-        alert("Buscar");
+        alerta("Buscar");
         //Consultar();
     });
     $("#btnCanc").on("click", function () {
-        alert("Cancelar");
+        alerta("Cancelar");
         //Cancelar();
     });
     $("#btnImpr").on("click", function () {
@@ -30,7 +30,7 @@ jQuery(function () {
 });  //Del: jQuery
 
 
-function alerta( msj, titulo ) {  // Instalar en scripts_form/Comunes: sweetalert2.all.min.js y
+function alerta( msj, titulo = "Información" ) {  // Instalar en scripts_form/Comunes: sweetalert2.all.min.js y
     Swal.fire({                   //                                   sweetalert2.min.css
         position: 'center',
         type: 'info',
@@ -48,7 +48,7 @@ async function ejecutarComando(accion) {
     let _vr3 = $("#txt_vr3").val();
     let _vr4 = $("#chk_vr4").prop("checked");
 
-    alert( "vr1: " + _vr1 + "..." + ", vr2: " + _vr2 + "..." + ", vr3: " + _vr3 + "..." + ", vr4: " + _vr4 );
+    alerta( "vr1: " + _vr1 + "..." + ", vr2: " + _vr2 + "..." + ", vr3: " + _vr3 + "..." + ", vr4: " + _vr4 );
 
     if ( _vr1 == undefined || _vr1.trim() == "" || parseInt(_vr1, 10) < 0 ) {
         alerta( "xxx no válido", "Error" );
