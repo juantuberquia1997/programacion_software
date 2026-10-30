@@ -31,6 +31,26 @@ namespace apiFestRock.Controllers
             }
         }
 
+        //Servicio para agregar un registro
+        [HttpPost]
+        public int Post([FromBody] TblArtistum datIn)
+        {
+            //Crear un objeto desde la clase operativa
+            clsOpeArtista oX = new clsOpeArtista(ctx);
+            oX.tblArtis = datIn; //Pasar los parámetros del artista
+            return oX.Agregar();
+        }
+
+        //Servicio para modificar un registro
+        [HttpPut]
+        public int Put([FromBody] TblArtistum datIn)
+        {
+            //Crear un objeto desde la clase operativa
+            clsOpeArtista oX = new clsOpeArtista(ctx);
+            oX.tblArtis = datIn; //Pasar los parámetros del artista
+            return oX.Modificar();
+        }
+
         //terminar metodo cancelar y este file
     }
 }

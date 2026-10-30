@@ -51,12 +51,16 @@ jQuery(function () {
 
     //Registrar los botones para responder al evento click
     $("#btnAgre").on("click", function () {
-        alerta("Agregar", "agregando");
-        Agregar();
+        $("#txtCodigo").val("0");
+        ejecutarComando("POST");
     });
     $("#btnModi").on("click", function () {
-        alerta("Modificar", "modificando");
-        Modificar();
+        let cod = $("#txtCodigo").val();
+        if (isNaN(cod) || parseInt(cod, 10) <= 0 || cod.trim() == "") {
+            alerta("Error, procedimiento no válido.", "Error, Buscar primero un artista");
+            return;
+        }
+        ejecutarComando("PUT");
     });
     $("#btnBusc").on("click", function () {
         alerta("Buscar");
@@ -178,42 +182,91 @@ function alerta(msj, titulo = "Información") {  // Instalar en scripts_form/Com
     });
 }
 
+//Validar la información de entrada: nombre y nro. de documento del artista
+function validar(name, nroDoc) {
+    var msj = "Falta ";
+    if (name.trim() == "") {
+        msj = msj + "El nombre no válido, \n";
+    }
+    if (isNaN(nroDoc) || parseFloat(nroDoc, 10) <= 0 || nroDoc.trim() == "") {
+        msj = msj + "el nro. de documento no válido. \n";
+    }
+    if (msj != "Falta ") {
+        alerta(msj, "Error en procedimiento");
+        return false;
+    }
+    return true;
+}
+
+//ejecutarComando: utilizada tanto para agregar (POST) como para modificar (PUT)
 async function ejecutarComando(accion) {
     //Capturar los datos de entrada
-    let _vr1 = $("#txt_vr1").val();
-    let _vr2 = $("#cbo_vr2").val();
-    let _vr3 = $("#txt_vr3").val();
-    let _vr4 = $("#chk_vr4").prop("checked");
+    let Codi = $("#txtCodigo").val();
+    let Nomb = $("#txtNombre").val();
+    let idGe = $("#cboGenero").val();
+    let idTD = $("#cboTipDoc").val();
+    let nroD = $("#txtNroDoc").val();
+    let idCi = $("#cboCiudad").val();
+    let acti = $("#chkActivo").prop("checked");
 
-    alerta("vr1: " + _vr1 + "..." + ", vr2: " + _vr2 + "..." + ", vr3: " + _vr3 + "..." + ", vr4: " + _vr4);
+    alerta("Codi: " + Codi + ", Nomb: " + Nomb + ", idGe: " + idGe + ", idTD: " + idTD + ", nroD: " + nroD + ", idCi: " + idCi + ", activo: " + acti, "Datos obtenidos");
 
-    if (_vr1 == undefined || _vr1.trim() == "" || parseInt(_vr1, 10) < 0) {
-        alerta("xxx no válido", "Error");
-        $("#txtCarnet").trigger("focus");
+    //Validar información
+    if (!validar(Nomb, nroD)) {
+        $("#txtNombre").trigger("focus");
         return;
     }
-    if (parseInt(_vr2, 10) <= 0) {
-        alerta("xxx no válido", "Error");
-        $("#cboPrograma").trigger("focus");
+
+    //Confirmar Procedimiento
+    let rpta = "";
+    if (accion === "POST") {
+        /*if (isNaN(Codi) || parseInt(Codi, 10) != 0 || Codi.trim() == "") {
+            alerta("Código no válido para registro nuevo", "Alerta");
+            return;
+        }*/
+        rpta = window.confirm('Estas seguro de agregar datos de: ' + Nomb + ', con nro. Doc.: ' + nroD + '?');
+        if (rpta == false) {
+            alerta('Cancelada acción de Agregar', 'Información');
+            return;
+        }
+    }
+    else if (accion === "PUT") {
+        if (isNaN(Codi) || parseInt(Codi, 10) <= 0 || Codi.trim() == "") {
+            alerta("Código no válido para modificar registro", "Alerta");
+            return;
+        }
+        rpta = window.confirm('Estas seguro de modificar datos de: ' + Nomb + ', con nro. Doc.: ' + nroD + '?');
+        if (rpta == false) {
+            alerta('Cancelada acción de Modificar', 'Información');
+            return;
+        }
+    }
+    else {
+        alerta("Procedimiento no válido", "Error");
         return;
     }
 
-    //Crear Json 
+    //Crear JSon
     let datosOut = {
-        campo1: _vr1,
-        campo2: _vr2,
-        campo3: _vr3,
-        campo4: _vr4
+        codigo: Codi,
+        nombre: Nomb,
+        idtipoDoc: idTD,
+        nroDoc: nroD,
+        idGenero: idGe,
+        idCiudad: idCi,
+        activo: acti
     }
+
     //Invocar el servicio con fetch
-    try {
-        const response = await fetch(dir + "nombre servicio", {
+    try {   // fetch se utiliza para realizar solicitudes HTTP a recursos de red
+        const response = await fetch(dir + "artista", {
             method: accion,
             headers: {
                 "Content-Type": "application/json",
             },
             body: JSON.stringify(datosOut),
-        });   // stringify() convierte un objeto o valor de JavaScript en una cadena de texto JSON
+        });  // stringify() convierte un objeto o valor de JavaScript en una cadena de texto JSON
+
         const rpta = await response.json();
         if (rpta == -1)
             alerta("Problema al grabar el registro (Revisar si existe)", "Error en proceso");
@@ -221,8 +274,9 @@ async function ejecutarComando(accion) {
             alerta("Error al momento del grabar, reintente por favor", "Error en grabar");
         else if (rpta > 0) {
             alerta("Registro grabado con éxito", "Proceso con éxito");
-            $("#txt_vr1").val(rpta);
-            //llenarTabla();
+            $("#txtCodigo").val(rpta);  // Clave primaria del registro grabado
+            await ConsultarXDocument();
+            await llenarTabla();
         }
         else
             alerta(rpta, "Error en procedimiento");
