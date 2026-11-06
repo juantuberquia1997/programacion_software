@@ -47,10 +47,10 @@ namespace apiFestRock.clases
                        editar   = "<a class='btn btn-info btn-sm' href=''><i class='fa fa-search-plus'></i> ir </a>",
                        codigo   = tArtist.Codigo,
                        nombre   = tArtist.Nombre,
-                       tipo_Doc = tArtist.IdtipoDoc,
+                       tipo_Doc = ITd.Nombre,
                        nro_Doc  = tArtist.NroDoc,
-                       genero   = tArtist.IdGenero,
-                       dpto     = tCity.IdDpto,
+                       genero   = IG.Nombre,
+                       dpto     = ID.Nombre,
                        ciudad   = tCity.Nombre,
                        activo   = tArtist.Activo
                     }; // Los 9 <th></th> para la tabla
@@ -70,10 +70,10 @@ namespace apiFestRock.clases
                 }
                 else
                 { // Hallar el código
-                    int newCod = ctx.TblArtista.Max(x => x.Codigo);
+                    int newCod = ctx.TblArtista.Any() ? ctx.TblArtista.Max(x => x.Codigo) : 0;
                     tblArtis.Codigo = (newCod <= 0) ? 1 : newCod + 1;
                     ctx.TblArtista.Add(tblArtis);
-                    ctx.SaveChangesAsync();
+                    ctx.SaveChanges();
                     return tblArtis.Codigo; // Código como éxito
                 }
             }

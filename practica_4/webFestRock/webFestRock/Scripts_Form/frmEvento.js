@@ -1,37 +1,158 @@
-﻿var dir = "http://localhost:XXXXX/api/";
+﻿var dir = "http://localhost:5114/api/";
+
+// Funciones para el llenado de los combos del formulario
+async function llenarComboDpto() {
+    let url = dir + "departamento/listadoDptos";
+    let rpta = await llenarComboGral(url, "#cboDpto");
+    if (rpta != "Termino") {
+        alerta("error en llenado combo departamento", "Error en procedimiento");
+        return;
+    }
+    // Llenado anidado del combo de ciudades
+    llenarComboCiudad();
+}
+
+//Combo anidado: ciudades del departamento seleccionado (o una ciudad específica)
+async function llenarComboCiudad(idCiu) {
+    let idDpto = $("#cboDpto").val();
+    let url = dir + "ciudad/listadoCiudsXDpto?codDpto=" + idDpto;
+    let rpta = await llenarComboGral(url, "#cboCiudad");
+    if (rpta != "Termino") {
+        alerta("Error en llenado combo ciudad", "Error en procedimiento");
+        return;
+    }
+    else if (idCiu != undefined) {
+        $("#cboCiudad").val(idCiu);
+    }
+}
 
 jQuery(function () {
+
     //Carga el menú
     $("#dvMenu").load("../Paginas/Menu.html");
 
     //Registrar los botones para responder al evento click
     $("#btnAgre").on("click", function () {
-        alerta("Agregar");
-        //Agregar();
+        $("#txtCodigo").val("0");
+        ejecutarComando("POST");
     });
     $("#btnModi").on("click", function () {
-        alerta("Modificar");
-        //Modificar();
+        let cod = $("#txtCodigo").val();
+        if (isNaN(cod) || parseInt(cod, 10) <= 0 || cod.trim() == "") {
+            alerta("Error, procedimiento no válido.", "Error, Buscar primero un evento");
+            return;
+        }
+        ejecutarComando("PUT");
     });
     $("#btnBusc").on("click", function () {
-        alerta("Buscar");
-        //Consultar();
+        Consultar();
     });
     $("#btnCanc").on("click", function () {
-        alerta("Cancelar");
-        //Cancelar();
+        Cancelar();
     });
     $("#btnImpr").on("click", function () {
         alerta("Impresión", "En futura construcción");
-        //Imprimir();
     });
 
+    //Llenado de los combos
+    llenarComboDpto();
+
+    //Llenado de la tabla
+    llenarTabla();
+
+    //Listener para la tabla (datatable): evento click sobre un registro (tr) de la tabla
+    $("#tablaDatos").on("click", "tbody tr", function (evento) {
+        evento.preventDefault();
+        if ($(this).hasClass("selected")) {
+            $(this).removeClass("selected");
+        } else {
+            $("#tablaDatos tbody tr.selected").removeClass("selected");
+            $(this).addClass("selected");
+            editarFila($(this).closest("tr"));
+        }
+    });
 
 });  //Del: jQuery
 
 
-function alerta( msj, titulo = "Información" ) {  // Instalar en scripts_form/Comunes: sweetalert2.all.min.js y
-    Swal.fire({                   //                                   sweetalert2.min.css
+async function llenarTabla() {
+    let url = dir + "evento/consultaEvento?comando=2&dato=0";
+    let rpta = await llenarTablaGral(url, "#tablaDatos");
+    if (rpta != "Termino") {
+        alerta("Error en llenado de tabla", "Error en procedimiento");
+    }
+}
+
+//Buscar desde la tabla: consulta por el nombre del evento de la fila seleccionada
+function editarFila(datosFila) {
+    let nombre = datosFila.find("td:eq(2)").text();  // Columna 2 (td:eq(2)): nombre
+    if (nombre.trim() != "") {
+        $("#txtNombre").val(nombre);
+        Consultar();
+        return;
+    }
+    alerta("Sin registros", "Procedimiento incompleto");
+}
+
+function Cancelar() {
+    $("#txtCodigo").val("0");
+    $("#txtNombre").val("");
+    $("#cboDpto")[0].options[0].selected = true;
+    llenarComboCiudad();
+    $("#txtAnio").val("");
+    $("#dtmFecha").val("");
+    $("#txtLugar").val("");
+    $("#txtValor").val("");
+    $("#chkActivo").prop("checked", true);
+    $("#txtNombre").trigger("focus");
+}
+
+//Consultar o buscar un evento por su nombre
+async function Consultar() {
+    try {
+        let nombre = $("#txtNombre").val();
+        if (nombre.trim() == "") {
+            alerta("Error, el nombre no es válido", "Error en procedimiento");
+            $("#txtNombre").trigger("focus");
+            return;
+        }
+        let url = dir + "evento/consultaEvento?comando=1&dato=" + encodeURIComponent(nombre);
+        const datosOut = await fetch(url, {
+            method: "GET",
+            mode: "cors",
+            headers: {
+                "content-type": "application/json",
+            }
+        });
+        const datosIn = await datosOut.json();
+        if (datosIn == "") {
+            alerta("No se encontró evento con nombre: " + nombre, "Información del proceso");
+            return;
+        }
+        $("#txtCodigo").val(datosIn[0].codigo);
+        $("#txtNombre").val(datosIn[0].nombre);
+        // Seleccionar el departamento, llenar el combo de ciudades y seleccionar la ciudad
+        $("#cboDpto").val(datosIn[0].idDep);
+        await llenarComboCiudad(datosIn[0].idC);
+        $("#txtAnio").val(datosIn[0].anio);
+        // La fecha se guarda como texto: solo se lleva al date si es una fecha válida
+        let fecha = datosIn[0].fecha;
+        if (fecha != null && !isNaN(Date.parse(fecha))) {
+            $("#dtmFecha").val(fecha);
+        }
+        else {
+            $("#dtmFecha").val("");
+        }
+        $("#txtLugar").val(datosIn[0].lugar);
+        $("#txtValor").val(datosIn[0].vrInsc);
+        $("#chkActivo").prop("checked", datosIn[0].act);
+    } catch (error) {
+        alerta("Error: " + error, "Error al consultar");
+    }
+}
+
+function alerta(msj, titulo = "Información") {  // Usa sweetalert2.all.min.js (Scripts_Form/Comunes)
+    Swal.fire({
         position: 'center',
         type: 'info',
         title: titulo,
@@ -39,57 +160,107 @@ function alerta( msj, titulo = "Información" ) {  // Instalar en scripts_form/C
     });
 }
 
+//Validar la información de entrada: nombre, ciudad, año y valor del evento
+function validar(nombre, idCiu, anio, valor) {
+    var msj = "Falta ";
+    if (nombre.trim() == "") {
+        msj = msj + "El nombre no válido, \n";
+    }
+    if (idCiu == null || idCiu <= 0) {
+        msj = msj + "la ciudad no válida. \n";
+    }
+    if (isNaN(anio) || parseInt(anio, 10) <= 0 || anio.trim() == "") {
+        msj = msj + "el año no válido. \n";
+    }
+    if (isNaN(valor) || parseFloat(valor, 10) <= 0 || valor.trim() == "") {
+        msj = msj + "el valor de inscripción no válido. \n";
+    }
+    if (msj != "Falta ") {
+        alerta(msj, "Error en procedimiento");
+        return false;
+    }
+    return true;
+}
 
-
+//ejecutarComando: utilizada tanto para agregar (POST) como para modificar (PUT)
 async function ejecutarComando(accion) {
     //Capturar los datos de entrada
-    let _vr1 = $("#txt_vr1").val();
-    let _vr2 = $("#cbo_vr2").val();
-    let _vr3 = $("#txt_vr3").val();
-    let _vr4 = $("#chk_vr4").prop("checked");
+    let Codi = $("#txtCodigo").val();
+    let Nomb = $("#txtNombre").val();
+    let idCi = $("#cboCiudad").val();
+    let Anio = $("#txtAnio").val();
+    let Fech = $("#dtmFecha").val();      // type="date": retorna yyyy-mm-dd o ""
+    let Luga = $("#txtLugar").val();
+    let Valo = $("#txtValor").val();
+    let acti = $("#chkActivo").prop("checked");
 
-    alerta( "vr1: " + _vr1 + "..." + ", vr2: " + _vr2 + "..." + ", vr3: " + _vr3 + "..." + ", vr4: " + _vr4 );
-
-    if ( _vr1 == undefined || _vr1.trim() == "" || parseInt(_vr1, 10) < 0 ) {
-        alerta( "xxx no válido", "Error" );
-        $("#txtCarnet").trigger("focus");
-        return;
-    }
-    if ( parseInt( _vr2, 10 ) <= 0 ) {
-        alerta( "xxx no válido", "Error" );
-        $("#cboPrograma").trigger("focus");
+    //Validar información
+    if (!validar(Nomb, idCi, Anio, Valo)) {
+        $("#txtNombre").trigger("focus");
         return;
     }
 
-    //Crear Json 
+    //Confirmar Procedimiento
+    let rpta = "";
+    if (accion === "POST") {
+        rpta = window.confirm('¿Estás seguro de agregar el evento: ' + Nomb + '?');
+        if (rpta == false) {
+            alerta('Cancelada acción de Agregar', 'Información');
+            return;
+        }
+    }
+    else if (accion === "PUT") {
+        if (isNaN(Codi) || parseInt(Codi, 10) <= 0 || Codi.trim() == "") {
+            alerta("Código no válido para modificar registro", "Alerta");
+            return;
+        }
+        rpta = window.confirm('¿Estás seguro de modificar el evento: ' + Nomb + '?');
+        if (rpta == false) {
+            alerta('Cancelada acción de Modificar', 'Información');
+            return;
+        }
+    }
+    else {
+        alerta("Procedimiento no válido", "Error");
+        return;
+    }
+
+    //Crear JSon
     let datosOut = {
-        campo1: _vr1,
-        campo2: _vr2,
-        campo3: _vr3,
-        campo4: _vr4
+        codigo: parseInt(Codi, 10) || 0,
+        nombre: Nomb,
+        idCiudad: parseInt(idCi, 10),
+        anio: parseInt(Anio, 10),
+        fecha: Fech,
+        lugar: Luga,
+        vrInscEvent: parseFloat(Valo),
+        activo: acti
     }
+
     //Invocar el servicio con fetch
     try {
-        const response = await fetch( dir + "nombre servicio", {
+        const response = await fetch(dir + "evento", {
             method: accion,
             headers: {
                 "Content-Type": "application/json",
             },
-            body: JSON.stringify( datosOut ),
-        });   // stringify() convierte un objeto o valor de JavaScript en una cadena de texto JSON
-        const rpta = await response.json( );
-        if ( rpta == -1 )
-            alerta( "Problema al grabar el registro (Revisar si existe)", "Error en proceso" );
-        else if ( rpta == 0 )
-            alerta( "Error al momento del grabar, reintente por favor", "Error en grabar" );
-        else if ( rpta > 0 ) {
-            alerta( "Registro grabado con éxito", "Proceso con éxito" );
-            $("#txt_vr1").val( rpta );
-            //llenarTabla();
+            body: JSON.stringify(datosOut),
+        });
+
+        const rpta = await response.json();
+        if (rpta == -1)
+            alerta("Problema al grabar el registro (Revisar si existe)", "Error en proceso");
+        else if (rpta == 0)
+            alerta("Error al momento del grabar, reintente por favor", "Error en grabar");
+        else if (rpta > 0) {
+            alerta("Registro grabado con éxito", "Proceso con éxito");
+            $("#txtCodigo").val(rpta);  // Clave primaria del registro grabado
+            await Consultar();
+            await llenarTabla();
         }
         else
-            alerta( rpta, "Error en procedimiento" );
-    } catch ( error ) {
-        alerta( "Error: " + error, "Error en procedimiento" );
+            alerta(rpta, "Error en procedimiento");
+    } catch (error) {
+        alerta("Error: " + error, "Error en procedimiento");
     }
 }

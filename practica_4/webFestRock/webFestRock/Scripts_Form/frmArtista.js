@@ -248,12 +248,12 @@ async function ejecutarComando(accion) {
 
     //Crear JSon
     let datosOut = {
-        codigo: Codi,
+        codigo: parseInt(Codi, 10) || 0,
         nombre: Nomb,
-        idtipoDoc: idTD,
-        nroDoc: nroD,
-        idGenero: idGe,
-        idCiudad: idCi,
+        idtipoDoc: parseInt(idTD, 10),
+        nroDoc: parseInt(nroD, 10),
+        idGenero: parseInt(idGe, 10),
+        idCiudad: parseInt(idCi, 10),
         activo: acti
     }
 

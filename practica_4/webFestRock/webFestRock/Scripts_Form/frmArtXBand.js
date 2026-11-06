@@ -1,95 +1,161 @@
-﻿var dir = "http://localhost:XXXXX/api/";
+﻿var dir = "http://localhost:5114/api/";
+
+// Formulario de solo consultas (no graba datos)
+// 1. Combo Evento   -> bandas participantes del evento
+// 2. Combo Banda    -> artistas por banda (con su instrumento)
+// 3. Combo Instrumento -> artistas por instrumento en el evento
+
+async function llenarComboEvento() {
+    let url = dir + "evento/listadoEventos";
+    let rpta = await llenarComboGral(url, "#cboEvento");
+    if (rpta != "Termino") {
+        alerta("error en llenado combo evento", "Error en procedimiento");
+        return;
+    }
+}
+
+async function llenarComboBanda() {
+    let url = dir + "banda/listadoBandas";
+    let rpta = await llenarComboGral(url, "#cboBanda");
+    if (rpta != "Termino") {
+        alerta("error en llenado combo banda", "Error en procedimiento");
+        return;
+    }
+    // Consulta inicial: artistas de la primera banda
+    await consultarArtistasXBanda();
+}
+
+async function llenarComboInstrum() {
+    let url = dir + "instrum/listadoInstrums";
+    let rpta = await llenarComboGral(url, "#cboInstrum");
+    if (rpta != "Termino") {
+        alerta("error en llenado combo instrumento", "Error en procedimiento");
+        return;
+    }
+}
 
 jQuery(function () {
+
     //Carga el menú
     $("#dvMenu").load("../Paginas/Menu.html");
 
     //Registrar los botones para responder al evento click
     $("#btnAgre").on("click", function () {
-        alerta("Agregar");
-        //Agregar();
+        alerta("Este formulario es de solo consulta", "Información");
     });
     $("#btnModi").on("click", function () {
-        alerta("Modificar");
-        //Modificar();
+        alerta("Este formulario es de solo consulta", "Información");
     });
     $("#btnBusc").on("click", function () {
-        alerta("Buscar");
-        //Consultar();
+        //Ejecuta la consulta acorde al último combo seleccionado
+        if ($("#cboInstrum").val() != null && $("#cboInstrum").val() > 0) {
+            consultarArtistasXInstrum();
+        }
+        else if ($("#cboEvento").val() != null && $("#cboEvento").val() > 0) {
+            consultarBandasXEvento();
+        }
     });
     $("#btnCanc").on("click", function () {
-        alerta("Cancelar");
-        //Cancelar();
+        //Restablecer los combos y la consulta inicial
+        $("#cboEvento")[0].options[0].selected = true;
+        $("#cboInstrum")[0].options[0].selected = true;
+        consultarArtistasXBanda();
     });
     $("#btnImpr").on("click", function () {
         alerta("Impresión", "En futura construcción");
-        //Imprimir();
     });
 
+    //Al cambiar el evento: consultar las bandas participantes
+    $("#cboEvento").on("change", function () {
+        if ($(this).val() != null && $(this).val() > 0) {
+            consultarBandasXEvento();
+        }
+    });
+
+    //Al cambiar la banda: consultar los artistas de la banda
+    $("#cboBanda").on("change", function () {
+        if ($(this).val() != null && $(this).val() > 0) {
+            consultarArtistasXBanda();
+        }
+    });
+
+    //Al cambiar el instrumento: consultar los artistas por instrumento en el evento
+    $("#cboInstrum").on("change", function () {
+        if ($(this).val() != null && $(this).val() > 0) {
+            consultarArtistasXInstrum();
+        }
+    });
+
+    //Llenado de los combos
+    llenarComboEvento();
+    llenarComboBanda();
+    llenarComboInstrum();
 
 });  //Del: jQuery
 
 
-function alerta( msj, titulo = "Información" ) {  // Instalar en scripts_form/Comunes: sweetalert2.all.min.js y
-    Swal.fire({                   //                                   sweetalert2.min.css
+//Llenar la tabla con el resultado de una consulta (valida si viene vacía)
+async function llenarTablaConsulta(url) {
+    try {
+        const datosOut = await fetch(url, {
+            method: "GET",
+            mode: "cors",
+            headers: {
+                "content-type": "application/json",
+            }
+        });
+        const datosIn = await datosOut.json();
+        if (datosIn == "") {
+            //Limpiar la tabla si hay una consulta previa (sin datos)
+            if ($.fn.dataTable.isDataTable("#tablaDatos")) {
+                $("#tablaDatos").DataTable().clear().destroy();
+            }
+            alerta("Sin datos para la consulta", "Información del proceso");
+            return;
+        }
+        let rpta = await llenarTablaGral(url, "#tablaDatos");
+        if (rpta != "Termino") {
+            alerta("Error en llenado de tabla", "Error en procedimiento");
+        }
+    } catch (error) {
+        alerta("Error: " + error, "Error en procedimiento");
+    }
+}
+
+//Consulta: bandas participantes de un evento
+async function consultarBandasXEvento() {
+    let idEvento = $("#cboEvento").val();
+    let url = dir + "consulta/bandasXEvento?idEvento=" + idEvento;
+    await llenarTablaConsulta(url);
+}
+
+//Consulta: artistas por banda (con su instrumento)
+async function consultarArtistasXBanda() {
+    let codBanda = $("#cboBanda").val();
+    if (codBanda == null || codBanda <= 0) {
+        return;
+    }
+    let url = dir + "banda/listadoArtXBand?codBanda=" + codBanda;
+    await llenarTablaConsulta(url);
+}
+
+//Consulta: artistas por instrumento en un evento
+async function consultarArtistasXInstrum() {
+    let idEvento = $("#cboEvento").val();
+    let idInstrum = $("#cboInstrum").val();
+    if (idEvento == null || idEvento <= 0) {
+        alerta("Seleccione primero un evento", "Error en procedimiento");
+        return;
+    }
+    let url = dir + "consulta/artistasXInstrum?idEvento=" + idEvento + "&idInstrum=" + idInstrum;
+    await llenarTablaConsulta(url);
+}
+
+function alerta(msj, titulo = "Información") {  // Usa sweetalert2.all.min.js (Scripts_Form/Comunes)
+    Swal.fire({
         position: 'center',
         type: 'info',
         title: titulo,
         text: msj
     });
-}
-
-
-
-async function ejecutarComando(accion) {
-    //Capturar los datos de entrada
-    let _vr1 = $("#txt_vr1").val();
-    let _vr2 = $("#cbo_vr2").val();
-    let _vr3 = $("#txt_vr3").val();
-    let _vr4 = $("#chk_vr4").prop("checked");
-
-    alerta( "vr1: " + _vr1 + "..." + ", vr2: " + _vr2 + "..." + ", vr3: " + _vr3 + "..." + ", vr4: " + _vr4 );
-
-    if ( _vr1 == undefined || _vr1.trim() == "" || parseInt(_vr1, 10) < 0 ) {
-        alerta( "xxx no válido", "Error" );
-        $("#txtCarnet").trigger("focus");
-        return;
-    }
-    if ( parseInt( _vr2, 10 ) <= 0 ) {
-        alerta( "xxx no válido", "Error" );
-        $("#cboPrograma").trigger("focus");
-        return;
-    }
-
-    //Crear Json 
-    let datosOut = {
-        campo1: _vr1,
-        campo2: _vr2,
-        campo3: _vr3,
-        campo4: _vr4
-    }
-    //Invocar el servicio con fetch
-    try {
-        const response = await fetch( dir + "nombre servicio", {
-            method: accion,
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify( datosOut ),
-        });   // stringify() convierte un objeto o valor de JavaScript en una cadena de texto JSON
-        const rpta = await response.json( );
-        if ( rpta == -1 )
-            alerta( "Problema al grabar el registro (Revisar si existe)", "Error en proceso" );
-        else if ( rpta == 0 )
-            alerta( "Error al momento del grabar, reintente por favor", "Error en grabar" );
-        else if ( rpta > 0 ) {
-            alerta( "Registro grabado con éxito", "Proceso con éxito" );
-            $("#txt_vr1").val( rpta );
-            //llenarTabla();
-        }
-        else
-            alerta( rpta, "Error en procedimiento" );
-    } catch ( error ) {
-        alerta( "Error: " + error, "Error en procedimiento" );
-    }
 }

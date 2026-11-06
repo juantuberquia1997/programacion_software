@@ -1,0 +1,107 @@
+Tecnología en Programación de Software       Docente:  Delio Augusto
+     Trabajo Final - Desarrollo de Software  Fecha     Aristizábal M.
+     Docente: Delio A. Aristizábal Martínez
+                        2026-2                         octubre/2026
+
+El trabajo final de Programación de Software es presentado acorde a la inscripción realizada ante el profesor
+Individual o en grupo de dos estudiantes (No es permitido divorcios, ni adición de otro estudiante después de
+asignado trabajo por cualquier motivo) y debe contemplar los siguientes parámetros:
+
+ Fecha de entrega enunciado del proyecto por el docente: octubre/29 de 2026.
+ Debe realizarse bajo las mismas características de lo practicado y enseñado en clase.
+ El proyecto debe de realizarse para un ambiente WEB Cliente/Servidor con servicio Web API Core, en ASP.NET
+
+    utilizando los lenguajes: C#, JavaScript con JQuery, Html y Bootstrap en la versión Visual Studio 2026 donde se
+    realizaron las prácticas durante el semestre e instalada en el ITM.
+ El proyecto debe cumplir con la programación por capas (mínimo 3) desde formularios HTML controladas por
+    páginas JavaScript para cada formulario, el CRUD debe de estar siendo aplicado desde servicios web API
+    implementados con Entity Framework Core.
+ En el proyecto de servicio API web debe implementarse con el modelo Entity Framework para la conexión y la
+    realización de las transacciones en la Bases de datos, el llenado de DataTables, listas desplegables (combos) y otros
+    objetos utilizados en la asignatura que considere utilizar.
+ Debe contener un formulario Splash que dure aproximadamente 4,5 segundos con diseño acorde al proyecto a
+    realizar. (Contener como mínimo: Titulo del proyecto, Logo, integrantes del proyecto como desarrolladores, Fecha,
+    etc.)
+ Debe contener un formulario de ingreso (login) que permita capturar el usuario y la clave, validarla en la base de
+    datos y permitir o no el ingreso al sistema. Utilizar variables tipo sesión para mostrar el nombre del logueado y su id
+    oculto en las páginas.
+ Debe tener un menú principal que permita navegar entre todos los formularios realizados en el proyecto. Nota:
+    Deben de estar todos los formularios operativos y maestros con sus respectivas opciones de manejo (con sus objetos
+    y clases locales), los formularios son basados para su frontEnd desde el modelo relacional de la base de datos.
+ En cada formulario a implementar tener en cuenta las siguientes consideraciones:
+     Un sistema de menú que permita el consultar, agregar, modificar, cancelar e imprimir.
+     El formulario debe contener el JS con JQuery que realice las tareas propias del objetivo de cada formulario,
+
+        utilizando los servicios API web (Get, Put, Post y Delete).
+     En el proyecto debe contener todos los objetos vistos en clase.
+     Todo formulario operativo debe de contener un DataTable que muestre todos los datos respectivos de la tabla
+
+        controlada.
+     Solo implementar completamente 4 formularios: el splash, el login y los 2 que son asignados por el docente al
+
+        momento de la aprobación del proyecto en la asesoría de aprobración del proyecto. El resto de los formularios
+        solo deberán contener todos los objetos propios necesarios para su implementación posterior (prototipo) como
+        se vio en la guía de la práctica.
+ Toda la información debe estar contenida en una base de datos SQL Server 2005/2012/2015 o superior
+     Debe crearse manualmente el script para la creación de la base de datos (como la vista en clase), las instrucciones
+        para las relaciones entre las tablas (PK/FK) y se requiere el insert de los datos en cada tabla para el buen
+        funcionamiento inicial del proyecto. (Debe ejecutar sin errores al momento de la sustentación)
+     El Modelo relacional de la base de datos debe estar normalizado hasta una 3ra. forma normal como mínimo.
+     Toda transacción o procedimiento en la base de datos debe de estar en la clase operativa propia de cada
+        formulario en el proyecto del servicio web API bajo el modelo Entity Framework con el respectivo controlador.
+
+               Los Proyectos son Tecnología .NET y Entity Framework cliente/servidor con servicio Web API
+Primera Entrega (hasta la fecha máxima indicada) (5%)
+ I. Acorde al enunciado entregado por el docente, realizar primero el modelo relacional (MR) formalizado (mínimo 3ra
+
+     forma normal) (No el MER) para su respectiva revisión y aprobación.
+II. Para la primera revisión solicitar asesoría de media hora vía correo, sino es aprobado en primera instancia; realizar
+
+     los respectivos cambios y solicitar otra asesoría de 10 minutos. Correo para solicitar las asesorías:
+     delioaristizabal@itm.edu.co. Las citas se realizarán acorde al orden de llegada al buzón del correo del docente y
+     que haya cumplido el orden de revisión.
+III. Después de aprobado el proyecto:
+      Entregar de forma impresa los requerimientos funcionales y no funcionales bien argumentados, copia del modelo
+
+         relacional (MR) aprobado (con la firma del docente) y los bosquejos (prototipos) de todos los formularios que se
+         compone el proyecto.
+      Si el docente no aprueba el modelo relacional hasta la fecha indicada de entrega de requerimientos, no se recibe
+         el trabajo. (No dejar hasta el último momento)
+                                Tecnología en Programación de Software       Docente:  Delio Augusto
+                                     Trabajo Final - Desarrollo de Software  Fecha     Aristizábal M.
+                                     Docente: Delio A. Aristizábal Martínez
+                                                        2026-2                         octubre/2026
+
+ Segunda Entrega; (hasta la fecha del final, ver fechas) (20%)
+ I. Se debe entregar un archivo (ZIP o RAR) debidamente marcado (apellidos y nombres), y en él:
+
+     a. Un documento Word con datos mínimos como el nombre del proyecto, nombre(s) del (los) integrante(s) con
+         su(s) carné, programa, institución entre otros y el enunciado del proyecto implementado. El
+
+     b. Script de la base de datos verificado su funcionamiento sin errores en la ejecución para la respectiva
+         sustentación.
+
+     c. Código completo del proyecto (Web y API) en Visual Studio 2026 desarrollado con los lenguajes de programación:
+         C#, JS, HTML con Bootstrap: realizar acorde a lo estudiado en clase (No IA, si se detecta, nota será: 0.0).
+
+     d. Crear una carpeta con copia de seguridad del proyecto y del script de la base de datos.
+II. Todos los integrantes deben de estar en el momento de la sustentación, si no asiste alguno de los integrantes o
+
+     ambos, se considera que no realizó el proyecto, y, por lo tanto, no tiene(n) derecho a nota por el proyecto (aunque
+     aparezca como que lo realizo). Si no asiste un(a) integrante y tiene justificación avalada por la institución, se
+     reprograma la sustentación del proyecto.
+III. El docente puede seleccionar a cualquiera de los integrantes para la sustentación o a ambos, y, puede darse nota
+     diferencial acorde a la sustentación presentada.
+IV. La nota estará compuesta por la sustentación y el trabajo entregado.
+
+                 No se reciben trabajos fuera de la fecha establecida a continuación, misma hora de clase.
+Las entregas y la sustentación son presenciales, deberán de entregarse en archivo zip, no permitido enviar por correo
+u otro medio.
+
+       Primera entrega                                               Segunda entrega
+   (MR, Requerimientos y                           Entrega y Sustentación del proyecto realizado
+
+           prototipo)             Entrega y sustentación desde Noviembre 3 hasta Noviembre 26 (Hasta 10 minutos
+                                después de inicio de la respectiva clase matriculada) (Se asigna orden de sustentación).
+Noviembre 19 hasta las 9:50 pm
+

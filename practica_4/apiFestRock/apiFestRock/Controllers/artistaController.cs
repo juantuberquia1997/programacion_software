@@ -50,7 +50,5 @@ namespace apiFestRock.Controllers
             oX.tblArtis = datIn; //Pasar los parámetros del artista
             return oX.Modificar();
         }
-
-        //terminar metodo cancelar y este file
     }
 }
