@@ -69,7 +69,7 @@
                                             <div class="col-md-3">
                                                 <div class="form-group">
                                                     <label for="cboDpto">Departamento</label>
-                                                    <select id="cboDpto" class="form-control"></select>
+                                                    <select id="cboDpto" class="form-control" onchange="llenarComboCiudad( );"></select>
                                                 </div>
                                             </div>
                                             <div class="col-md-3">
@@ -106,9 +106,10 @@
                                                 <table id="tblDatosDetalle" class="table table-bordered table-striped">
                                                     <thead>
                                                         <tr>
-                                                            <th style="width: 50%">Artista</th>
-                                                            <th style="width: 30%">Instrumento</th>
-                                                            <th style="width: 20%">Activo</th>
+                                                            <th style="width: 40%">Artista</th>
+                                                            <th style="width: 25%">Instrumento</th>
+                                                            <th style="width: 15%">Activo</th>
+                                                            <th style="width: 20%">Acción</th>
                                                         </tr>
                                                     </thead>
                                                     <tbody>
@@ -122,12 +123,36 @@
                                                             <td>
                                                                 <div class="form-group">
                                                                     <label for="chkActArt">Activo:</label>
-                                                                    <input type="checkbox" class="form-control" id="chkActArt">
+                                                                    <input type="checkbox" class="form-control" id="chkActArt" checked>
                                                                 </div>
+                                                            </td>
+                                                            <td>
+                                                                <button type="button" id="btnAgreArt" class="btn btn-success">Agregar Artista</button>
                                                             </td>
                                                         </tr>
                                                     </tbody>
                                                 </table>
+                                            </div>
+                                        </div>
+                                        <!-- Sección artistas agregados (oculta al inicio) -->
+                                        <div class="row">
+                                            <div class="col-md-12">
+                                                <div id="seccionDetalle" style="display: none;">
+                                                    <h5>Artistas Agregados</h5>
+                                                    <table class="table table-bordered table-striped">
+                                                        <thead>
+                                                            <tr>
+                                                                <th>Artista</th>
+                                                                <th>Instrumento</th>
+                                                                <th>Activo</th>
+                                                                <th>Acción</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody id="tablaDetalleMae">
+                                                            <!-- Aquí se agregan dinámicamente los artistas de la banda desde JS -->
+                                                        </tbody>
+                                                    </table>
+                                                </div>
                                             </div>
                                         </div>
                                         <!-- Acá para más rows para datos -->

@@ -1,0 +1,26 @@
+Punto 3 -- Lavandería "Los trajes"
+
+La lavandería "Los trajes" desea tener el manejo y el control de las prendas y objetos que ingresan a la
+lavandería por servicio a realizar. El cliente trae sus prendas u objetos para realizar cualquiera de los
+diferentes servicios que ofrece, el cual cada uno tiene un valor en los diferentes tipos de prendas y
+objetos que es capaz de manipular.
+
+El sistema maneja los estados de la prenda o el objeto al momento de ser recibido, y los descuentos
+que ofrece por cantidad de prendas.
+
+Debe de existir la forma de registrar a los usuarios del sistema (con clave y contraseña) y la captura del
+empleado que realiza cada proceso.
+
+Un cliente puede tener uno o varios teléfonos y una o varias direcciones que pueden ser en diferentes
+ciudades del país. La lavandería tiene el servicio de entrega a domicilio, el cual el cliente determina
+utilizar o no al momento de dejar sus prendas u objetos y, si lo opta, determina a cuál de sus direcciones
+lo deben de entregar.
+
+Un cliente puede solicitar varios servicios en cada ingreso.
+
+Los datos enunciados en este enunciado son básicos, los deben de complementar acorde a las
+consultas realizadas acorde al problema propuesto.
+
+De cada empleado se quiere conocer el código, el Nro. de identificación con su tipo, nombres, apellidos,
+direcciones con ciudad, teléfonos y profesión(es), entre otros datos y los propios de la empresa.
+
