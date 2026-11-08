@@ -31,6 +31,14 @@ namespace apiFestRock.Controllers
             return oX.consultarVrInscrip(idEvent);
         }
 
+        //Valor individual de inscripción del evento (guía 1.1.b.vii)
+        [HttpGet("valorEvento")]
+        public IQueryable valorInsc(int idEv)
+        {
+            clsOpeEvento oX = new clsOpeEvento(ctx);
+            return oX.consultarVrInscrip(idEv);
+        }
+
         //Servicio de consulta: comando 1 = consultar por nombre, comando 2 = llenar tabla
         [HttpGet("consultaEvento")]
         public IQueryable Get(int comando, string dato)

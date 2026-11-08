@@ -31,7 +31,7 @@ namespace apiFestRock.clases
                    select new {
                        codigo = IE.Codigo,
                        nombre = IE.Nombre,
-                       vrInsc = IE.VrInscEvent
+                       vrIndInsc = IE.VrInscEvent
                    };
         }
 

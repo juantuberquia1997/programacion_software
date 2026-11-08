@@ -18,6 +18,29 @@ namespace apiFestRock.clases
             this.ctx = ctx;
         }
 
+        //Propiedad con los datos de la inscripción (encabezado): misma del Model
+        //(guía 1.5.1.iv Bis)
+        public TblInscrip tblInsc { get; set; }
+
+        //iqueryable: consultar el encabezado de una inscripción por su nro.
+        //(guía 1.5.1.v)
+        public IQueryable consultarInscrip(int idCod)
+        {
+            return from x in ctx.TblInscrips
+                   join e in ctx.TblEventos on x.IdEvento equals e.Codigo
+                   where x.Codigo == idCod
+                   select new {
+                       nro = x.Codigo,
+                       idEvento = x.IdEvento,
+                       vrInd = e.VrInscEvent,
+                       fec = x.Fecha,
+                       repre = x.Represent,
+                       telef = x.TelRepresent,
+                       idBand = x.IdBanda,
+                       vrTot = x.ValorInscrip
+                   };
+        }
+
         //iqueryable: consultar una inscripción por su código (nro. de inscripción)
         public IQueryable inscripXId(int codigo)
         {
