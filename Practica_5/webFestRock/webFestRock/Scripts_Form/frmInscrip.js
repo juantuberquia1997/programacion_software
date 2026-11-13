@@ -244,6 +244,7 @@ async function Consultar() {
         //Alinea el combo de artistas con la banda de la inscripción y retira
         //los artistas ya inscritos (igual que la guía 1.7.6 en grabarInscripc)
         await llenarComboArtista();
+        await retirarDatosCmboArtBand();
     } catch (error) {
         alerta(error, "Error: ");
     }
