@@ -381,6 +381,148 @@ function agregarDetalle_PreInsc() {
     }
 }
 
+// ================= GRABAR INSCRIPCIÓN EN BD (guía 1.7) =================
+
+//Validar los datos generales de la inscripción antes de grabar (guía 1.7.6.i)
+function validar(nombre, tel, vrTi) {
+    var msj = "";
+    if (nombre == undefined || nombre.trim() == "") {
+        msj += "Falta el nombre del representante. \n";
+    }
+    if (tel == undefined || tel.trim() == "") {
+        msj += "Falta el teléfono del representante. \n";
+    }
+    if (isNaN(vrTi) || vrTi <= 0) {
+        msj += "Valor total inscripción debe ser mayor a 0. \n";
+    }
+    if (msj != "") {
+        alerta(msj, "Error en procedimiento");
+        $("#txtRepres").trigger("focus");
+        return false;
+    }
+    return true;
+}
+
+//Control del combo de artistas tras grabar o consultar (guía 1.7.6.ii)
+function controlCmboArtistas() {
+    $("#txtInstrum").val("");
+    $("#txtEdad").val("");
+    let kArtBand = $("#cboArtBand option").length;
+    if (kArtBand <= 0) {
+        alerta("Sin Artistas para inscribir", "Alerta");
+    } else {
+        consultarInstrum();
+    }
+}
+
+//Grabar la inscripción en la BD: CASO 1 nuevo registro (maestro-detalle,
+//txtCodigo = 0) o CASO 2 adición de un artista a una inscripción existente
+//(txtCodigo > 0) (guía 1.7.6.iii)
+async function grabarInscripc() {
+    try {
+        let nroIn = $("#txtCodigo").val();
+        let idEve = $("#cboEvento").val();
+        let idBan = $("#cboBanda").val();
+        let repre = $("#txtRepres").val();
+        let telRe = $("#txtTelRep").val();
+        let vrTot = parseFloat($("#txtValorTot").val()) || 0;
+
+        if (!validar(repre, telRe, vrTot)) return;
+
+        // CASO 1: Nuevo registro en BD (nroIn == 0)
+        if (nroIn == 0) {
+            let fechInsc = new Date().toISOString().split('T')[0];
+
+            if (detMae.length === 0) {
+                alerta("Debe inscribir al menos un artista.", "Advertencia");
+                $("#cboArtBand option").trigger("focus");
+                return;
+            }
+
+            let datosParaInscripc = {
+                idEvento: idEve,
+                fecha: fechInsc,
+                idBanda: idBan,
+                represent: repre,
+                telRepresent: telRe,
+                valorInscrip: vrTot,
+                inscritos: detMae
+            };
+
+            let url = dir + "inscripc/agregarInscrip";
+            const envio = await fetch(url, {
+                method: "POST",
+                mode: "cors",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(datosParaInscripc)
+            });
+
+            const rpta = await envio.text();
+            let nroInsc = rpta.toString();
+
+            if (nroInsc <= 0) {
+                alerta("Se produjo error al grabar inscripción, revisar", "Error en grabar");
+                return;
+            }
+
+            $("#txtCodigo").val(nroInsc);
+            $("#seccionDetalleMae").hide();
+            let inscritos = $("#tablaDetalleMae");
+            inscritos.empty();
+            cambiarLblBtnAgregar(1);
+            await Consultar();
+            alerta("Se generó la inscripción #" + nroInsc, "Proceso con éxito");
+            return;
+        }
+        // CASO 2: Adición a inscripción existente en BD (nroIn > 0)
+        else if (parseInt(nroIn, 10) > 0) {
+            let idCodAB = $("#cboArtBand").val();
+            let edadArt = $("#txtEdad").val();
+
+            if (!idCodAB) {
+                alerta("Debe seleccionar un artista.", "Alerta");
+                $("#cboArtBand").trigger("focus");
+                return;
+            }
+
+            if (isNaN(edadArt) || edadArt <= 0) {
+                alerta("Edad no válida, debe ser mayor a 0.", "Alerta");
+                $("#txtEdad").trigger("focus");
+                return;
+            }
+
+            let nombArt = $("#cboArtBand option:selected").text();
+            let txt = "¿Seguro desea agregar el artista: " + nombArt + " a la inscripción?";
+
+            let continua = window.confirm(txt);
+            if (!continua) {
+                alerta('Cancelada acción de agregar', 'Información');
+                return;
+            }
+
+            let url = dir + "detInscripc/agregarDetalleInd?nroInscrip=" + nroIn + "&idArtBand=" + idCodAB + "&edad=" + edadArt;
+            const datosEnvio = await fetch(url, {
+                method: "POST",
+                mode: "cors",
+                headers: { "content-type": "application/json" }
+            });
+
+            const rpta = await datosEnvio.json();
+            if (rpta == 1) {
+                await llenarTabla();
+                await llenarComboArtista();
+                await retirarDatosCmboArtBand();
+                alerta("Se grabó el artista: " + nombArt + " en la inscripción: " + nroIn, "Información");
+                controlCmboArtistas();
+            } else {
+                alerta("Error en agregar artista, reintente por favor", "Alerta");
+            }
+        }
+    } catch (error) {
+        alerta("Error al grabar inscripción: " + error, "Alerta");
+    }
+}
+
 //Alerta general de los formularios (usa sweetalert2.all.min.js)
 function alerta(msj, titulo = "Información") {
     Swal.fire({
@@ -404,7 +546,7 @@ jQuery(function () {
         let txt = txtBtnAgre.innerHTML;
         let nroInsc = $("#txtCodigo").val();
         if (txt == "Grabar Inscripción" || parseInt(nroInsc, 10) > 0) {
-            alerta("En construcción", "Alerta"); // Se implementa en la guía 1.7 (grabarInscripc)
+            grabarInscripc(); // Grabar en BD (guía 1.7.6.vi)
         } else { // Agregar artistas a la pre-inscripción como detalle
             agregarDetalle_PreInsc();
         }

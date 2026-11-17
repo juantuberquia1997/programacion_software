@@ -23,5 +23,14 @@ namespace apiFestRock.Controllers
             clsOpeDetInscrip oX = new clsOpeDetInscrip(ctx);
             return oX.buscarDetXNroInsc(nroInsc);
         }
+
+        //Grabar un artista individual en una inscripción existente:
+        //retorna 1 = grabado, 0 = error (guía 1.7.5)
+        [HttpPost("agregarDetalleInd")]
+        public int adicionaDetalleInd(int nroInscrip, int idArtBand, int edad)
+        {
+            clsOpeDetInscrip oX = new clsOpeDetInscrip(ctx);
+            return oX.grabarDetalleInd(nroInscrip, idArtBand, edad);
+        }
     }
 }

@@ -1,4 +1,5 @@
 using apiFestRock.Models;
+using static apiFestRock.clases.auxiliar.clsInscripcionCompleta;
 
 namespace apiFestRock.clases
 {
@@ -217,6 +218,46 @@ namespace apiFestRock.clases
             catch
             {
                 return 0; // Error de ejecución
+            }
+        }
+
+        //Grabar el encabezado de la inscripción: retorna el nro. (código)
+        //generado para el nuevo registro (guía 1.7.3.ii Bis)
+        public int registrarEncabezado(inscripCompleta datosEncab)
+        {
+            var ultimo = ctx.TblInscrips.Max(x => (int?)x.Codigo) ?? 0;
+            int nuevoID = (ultimo <= 0) ? 1 : ultimo + 1;
+
+            TblInscrip tblInsc = new TblInscrip();
+            tblInsc.Codigo = nuevoID;
+            tblInsc.IdEvento = datosEncab.IdEvento;
+            tblInsc.Fecha = DateTime.Now.ToShortDateString();
+            tblInsc.IdBanda = datosEncab.IdBanda;
+            tblInsc.Represent = datosEncab.Represent;
+            tblInsc.TelRepresent = datosEncab.TelRepresent;
+            tblInsc.ValorInscrip = datosEncab.ValorInscrip;
+
+            ctx.TblInscrips.Add(tblInsc);
+            ctx.SaveChanges();
+            return nuevoID;
+        }
+
+        //Eliminar el encabezado de la inscripción (rollback manual cuando
+        //falla el grabado del detalle) (guía 1.7.3.iii Bis)
+        public void eliminarEncabezado(int idCod)
+        {
+            try
+            {
+                var rgtro = ctx.TblInscrips.FirstOrDefault(d => d.Codigo == idCod);
+                if (rgtro != null)
+                {
+                    ctx.TblInscrips.Remove(rgtro);
+                    ctx.SaveChanges();
+                }
+            }
+            catch
+            {
+                return;
             }
         }
     }
