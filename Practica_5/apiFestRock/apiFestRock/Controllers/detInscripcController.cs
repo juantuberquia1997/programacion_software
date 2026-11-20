@@ -32,5 +32,14 @@ namespace apiFestRock.Controllers
             clsOpeDetInscrip oX = new clsOpeDetInscrip(ctx);
             return oX.grabarDetalleInd(nroInscrip, idArtBand, edad);
         }
+
+        //Eliminar el registro (artista) del detalle de una inscripción
+        //(guía 1.8.2)
+        [HttpDelete("borrarDetalle")]
+        public string borradoDetalle(int idDet)
+        {
+            clsOpeDetInscrip oX = new clsOpeDetInscrip(ctx);
+            return oX.Eliminar(idDet);
+        }
     }
 }

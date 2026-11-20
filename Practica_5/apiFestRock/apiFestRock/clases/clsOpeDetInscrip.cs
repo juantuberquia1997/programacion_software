@@ -81,5 +81,25 @@ namespace apiFestRock.clases
                 return 0;
             }
         }
+
+        //Eliminar el registro (artista) del detalle de una inscripción
+        //(guía 1.8.1)
+        public string Eliminar(int idDetInsc)
+        {
+            try
+            {
+                var det = ctx.TblDetInscs.FirstOrDefault(d => d.Codigo == idDetInsc);
+                if (det == null)
+                    return "Inscripción no encontrada.";
+
+                ctx.TblDetInscs.Remove(det);
+                ctx.SaveChanges();
+                return "Registro de Inscripción eliminado correctamente.";
+            }
+            catch (Exception ex)
+            {
+                return "Error al eliminar registro: " + ex.Message;
+            }
+        }
     }
 }

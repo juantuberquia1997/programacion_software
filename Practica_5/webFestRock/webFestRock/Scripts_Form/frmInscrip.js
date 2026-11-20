@@ -523,6 +523,88 @@ async function grabarInscripc() {
     }
 }
 
+// ================= ELIMINAR DETALLE DE UNA INSCRIPCIÓN EN BD (guía 1.8) =================
+
+//Borrar en la BD un registro (artista) del detalle de la inscripción
+//(guía 1.8.3.i)
+async function eliminarDetInsc(idDetInsc) {
+    try {
+        let url = dir + "detInscripc/borrarDetalle?idDet=" + idDetInsc;
+        let respuesta = await fetch(url, {
+            method: "DELETE",
+            headers: { "Content-Type": "application/json" }
+        });
+
+        let rpta = await respuesta.text();
+
+        if (rpta.substring(0, 5) === "Error") {
+            alerta(rpta, "Error en procedimiento");
+        } else {
+            alerta(rpta, "Atención");
+            $("#tablaDatos tr").empty();
+            await llenarTabla();
+            await llenarComboArtista();
+            await retirarDatosCmboArtBand();
+            controlCmboArtistas();
+        }
+    } catch (err) {
+        alerta(err, "No se pudo eliminar el registro.");
+    }
+}
+
+// ================= MODIFICAR EL ENCABEZADO DE LA INSCRIPCIÓN EN BD (guía 1.9) =================
+
+//Modificar los datos del encabezado de la inscripción (evento, representante
+//y teléfono) en la BD (guía 1.9.3.i)
+async function Modificar() {
+    let nroInsc = $("#txtCodigo").val();
+    if (isNaN(nroInsc) || nroInsc.trim() === "" || parseInt(nroInsc, 10) <= 0) {
+        alerta("Solo se modifica un registro existente.", "Atención");
+        $("#txtCodigo").trigger("focus");
+        return;
+    }
+
+    let idEven = $("#cboEvento").val();
+    let repres = $("#txtRepres").val();
+    let telRep = $("#txtTelRep").val();
+
+    if (repres.trim() === "" || telRep.trim() === "") {
+        alerta("Faltan datos válidos para modificar", "Advertencia");
+        $("#txtRepres").trigger("focus");
+        return;
+    }
+
+    let rpta = window.confirm('¿Seguro de modificar la inscripción: ' + nroInsc + '?');
+    if (rpta == false) {
+        alerta('Cancelada acción de modificación', 'Información');
+        return;
+    } else {
+        let datosParaModif = {
+            codigo: parseInt(nroInsc, 10),
+            idEvento: parseInt(idEven, 10),
+            represent: repres,
+            telRepresent: telRep
+        };
+
+        try {
+            let url = dir + "inscripc/modificaEncabinscrip";
+            const rpta = await fetch(url, {
+                method: "PUT",
+                mode: "cors",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(datosParaModif),
+            });
+
+            const txtRpta = await rpta.text();
+            alerta(txtRpta, "Atención");
+        } catch (error) {
+            alerta("Error: " + error, "Error de procedimiento");
+        }
+    }
+}
+
 //Alerta general de los formularios (usa sweetalert2.all.min.js)
 function alerta(msj, titulo = "Información") {
     Swal.fire({
@@ -552,14 +634,9 @@ jQuery(function () {
         }
     });
 
-    //Listener del botón Modificar (se implementa en la guía 1.9)
+    //Listener del botón Modificar (guía 1.9.3.ii)
     $("#btnModi").on("click", function () {
-        let nroInsc = $("#txtCodigo").val();
-        if (isNaN(nroInsc) || nroInsc.trim() == "" || parseInt(nroInsc, 10) <= 0) {
-            alerta("Solo se modifica un registro existente, buscar primero", "Atención");
-            return;
-        }
-        alerta("En construcción", "Alerta"); // Se implementa en la guía 1.9 (Modificar)
+        Modificar();
     });
 
     //Listener del botón Consultar (guía 1.5.5.v)
@@ -570,6 +647,23 @@ jQuery(function () {
     //Listener del botón Cancelar (guía 1.4.2.xviii)
     $("#btnCanc").on("click", function () {
         Cancelar();
+    });
+
+    //Listener delegado del botón Eliminar (Quitar) de la tabla de consulta
+    //de la inscripción (guía 1.8.3.ii)
+    $(document).on("click", "#tablaDatos .btnEliminar", function (evento) {
+        evento.preventDefault();
+        evento.stopPropagation();
+
+        let fila = $(this).closest("tr");
+        let idDetalleInsc = fila.find("td:eq(0)").text();
+        let nombre = fila.find("td:eq(3)").text();
+        let codAB = fila.find("td:eq(2)").text();
+
+        let txt = "¿Seguro desea eliminar la inscripción de: " + nombre + "?";
+        if (confirm(txt)) {
+            eliminarDetInsc(parseInt(idDetalleInsc));
+        }
     });
 
     //Listener del botón Impresión

@@ -260,5 +260,36 @@ namespace apiFestRock.clases
                 return;
             }
         }
+
+        //Modificar los datos del encabezado de la inscripción (evento,
+        //representante y teléfono) usando la propiedad tblInsc (guía 1.9.1)
+        public string Modificar()
+        {
+            try
+            {
+                if (tblInsc.Codigo <= 0)
+                {
+                    return "Inscripción: " + tblInsc.Codigo + ", no es válido.";
+                }
+
+                var p = ctx.TblInscrips.FirstOrDefault(x => x.Codigo == tblInsc.Codigo);
+
+                if (p == null)
+                {
+                    return "Inscripción " + tblInsc.Codigo + ", no existe.";
+                }
+
+                p.IdEvento = tblInsc.IdEvento;
+                p.Represent = tblInsc.Represent;
+                p.TelRepresent = tblInsc.TelRepresent;
+
+                ctx.SaveChanges();
+                return "Inscripción: " + tblInsc.Codigo + ", actualizada correctamente.";
+            }
+            catch
+            {
+                return "Error al actualizar inscripción.";
+            }
+        }
     }
 }

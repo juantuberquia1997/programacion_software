@@ -54,5 +54,14 @@ namespace apiFestRock.Controllers
                 return -1; // Error general
             }
         }
+
+        //Modificar los datos del encabezado de la inscripción (guía 1.9.2)
+        [HttpPut("modificaEncabinscrip")]
+        public string Put([FromBody] TblInscrip objIn)
+        {
+            clsOpeInscrip oX = new clsOpeInscrip(ctx);
+            oX.tblInsc = objIn;
+            return oX.Modificar();
+        }
     }
 }
