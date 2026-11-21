@@ -1,6 +1,6 @@
 @apiLavanderia_HostAddress = http://localhost:5124
 
-GET {{apiLavanderia_HostAddress}}/weatherforecast/
+GET {{apiLavanderia_HostAddress}}/api/profesion/listadoProfesiones
 Accept: application/json
 
 ###
