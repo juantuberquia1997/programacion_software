@@ -1,355 +1,612 @@
-﻿var dir = "http://localhost:5114/api/";
+﻿//Form: frmInscrip - Maestro de Inscripciones
+//Código según la guía de práctica 5: secciones 1.4 y 1.5
+//(incluye las funciones de pre-inscripción de la 1.6 que son
+//invocadas por los listener especificados en la 1.4, pág. 12)
 
-//Detalle de la inscripción (tblDetInsc): artistas inscritos con su edad
-var detalleArtistas = [];
-//Cache de los artistas de la banda seleccionada (para el combo cboArtBand)
-var artistasBanda = [];
+//Variable de la API (guía 1.4.2.i) - puerto de ejecución de la API
+var dir = "http://localhost:5114/api/";
 
-//Fecha de hoy con formato dd/mm/yyyy
+//Arreglo de detalle en memoria: artistas preinscritos (guía 1.4.2.ii)
+var detMae = [];
+
+//Variables de control (guía 1.4.2.iii)
+var idCtlBand = 0;
+var sw = 0;
+
+//Inicializar el DataTable de la tabla de consulta (guía 1.5.5.i)
+var oTabla = $("#tablaDatos").DataTable();
+
+//Fecha de hoy con formato dd-mm-yyyy (guía 1.4.2.vi)
 function fechaHoy() {
-    let hoy = new Date();
-    let dd = String(hoy.getDate()).padStart(2, "0");
-    let mm = String(hoy.getMonth() + 1).padStart(2, "0");
-    let yyyy = hoy.getFullYear();
-    return dd + "/" + mm + "/" + yyyy;
+    let n = new Date();
+    let y = n.getFullYear();
+    let m = n.getMonth() + 1; // 12
+    let d = n.getDate(); // 31
+    if (d < 10) { d = '0' + d; }
+    if (m < 10) { m = '0' + m; }
+    var newfec = `${d}-${m}-${y}`;
+    return newfec;
 }
 
-// Funciones para el llenado de los combos del formulario
-async function llenarComboEvento() {
-    let url = dir + "evento/listadoEventos";
-    let rpta = await llenarComboGral(url, "#cboEvento");
-    if (rpta != "Termino") {
-        alerta("error en llenado combo evento", "Error en procedimiento");
-        return;
-    }
-    // Valor unitario de inscripción del evento seleccionado
-    await consultarVrInscrip();
-}
-
-//Consultar el valor por artista del evento seleccionado (lblVrIndInsc)
-async function consultarVrInscrip() {
+//Consultar el valor individual de inscripción del evento seleccionado (guía 1.4.2.viii)
+async function vrInscEvento() {
     try {
-        let idEvento = $("#cboEvento").val();
-        if (idEvento == null || idEvento <= 0) {
+        let idEve = parseInt($("#cboEvento").val());
+        if (parseInt(idEve, 10) <= 0) {
+            alerta("No selección de evento", "Error");
+            $("#cboEvento").trigger("focus");
             return;
         }
-        let url = dir + "evento/consultaVrInscrip?idEvent=" + idEvento;
+        let url = dir + "evento/valorEvento?idEv=" + idEve;
         const datosOut = await fetch(url, {
             method: "GET",
             mode: "cors",
-            headers: {
-                "content-type": "application/json",
-            }
+            headers: { "content-type": "application/json" }
         });
         const datosIn = await datosOut.json();
         if (datosIn == "") {
-            alerta("No se encontró el evento", "Información del proceso");
+            alerta("No se encontró valor para el evento ", "Error de ejecución");
             return;
         }
-        $("#lblVrIndInsc").text(datosIn[0].vrInsc);
-        actualizarValorTot();
+        $("#lblVrIndInsc").text(datosIn[0].vrIndInsc);
     } catch (error) {
-        alerta("Error: " + error, "Error al consultar el valor");
+        alerta(error, "Error: ");
     }
 }
 
-async function llenarComboBanda() {
-    let url = dir + "banda/listadoBandas";
-    let rpta = await llenarComboGral(url, "#cboBanda");
-    if (rpta != "Termino") {
-        alerta("error en llenado combo banda", "Error en procedimiento");
-        return;
-    }
-    // Llenado anidado: artistas de la banda seleccionada
-    await llenarComboArtXBand();
-}
-
-//Combo anidado: artistas de la banda seleccionada con su instrumento (cboArtBand)
-async function llenarComboArtXBand() {
+//Consultar el instrumento que toca el artista seleccionado (guía 1.4.2.viii)
+async function consultarInstrum() {
     try {
-        let codBanda = $("#cboBanda").val();
-        if (codBanda == null || codBanda <= 0) {
+        let idBA = $("#cboArtBand").val();
+        if (idBA.trim() == "" || parseInt(idBA, 10) <= 0) {
+            alerta("No selección de artista", "Atención");
+            $("#cboArtBand").trigger("focus");
             return;
         }
-        let url = dir + "banda/listadoArtXBand?codBanda=" + codBanda;
+        let url = dir + "artBand/datosArtBanda?dato=" + idBA + "&cmd=2";
         const datosOut = await fetch(url, {
             method: "GET",
             mode: "cors",
-            headers: {
-                "content-type": "application/json",
-            }
+            headers: { "content-type": "application/json" }
         });
         const datosIn = await datosOut.json();
-        artistasBanda = datosIn;  // Cache para mostrar el instrumento al seleccionar
-        //El servicio retorna idArtBand/artista: se llena el combo manualmente
-        $("#cboArtBand").empty();
-        for (i = 0; i < datosIn.length; i++) {
-            $("#cboArtBand").append('<option value=' + datosIn[i].idArtBand + '>' + datosIn[i].artista + '</option>');
-        }
-        $("#txtInstrum").val("");
-        $("#txtEdad").val("");
-    } catch (error) {
-        alerta("Error: " + error, "Error al cargar los artistas de la banda");
-    }
-}
-
-jQuery(function () {
-
-    //Carga el menú
-    $("#dvMenu").load("../Paginas/Menu.html");
-
-    //Registrar los botones para responder al evento click
-    $("#btnAgre").on("click", function () {
-        $("#txtCodigo").val("0");
-        ejecutarComando("POST");
-    });
-    $("#btnModi").on("click", function () {
-        let cod = $("#txtCodigo").val();
-        if (isNaN(cod) || parseInt(cod, 10) <= 0 || cod.trim() == "") {
-            alerta("Error, procedimiento no válido.", "Error, Buscar primero una inscripción");
+        if (datosIn == "") {
+            alerta("No se encontró instrumento para el artista.", "Advertencia");
             return;
         }
-        ejecutarComando("PUT");
-    });
-    $("#btnBusc").on("click", function () {
-        Consultar();
-    });
-    $("#btnCanc").on("click", function () {
-        Cancelar();
-    });
-    $("#btnImpr").on("click", function () {
-        alerta("Impresión", "En futura construcción");
-    });
+        $("#txtInstrum").val(datosIn[0].nombre);
+    } catch (error) {
+        alerta(error, "Error: ");
+    }
+}
 
-    //Adicionar un artista al detalle de la inscripción
-    $("#btnAgreArt").on("click", function () {
-        agregarArtista();
-    });
+//Cambiar la etiqueta del botón Agregar según la acción (guía 1.4.2.ix)
+function cambiarLblBtnAgregar(accion) {
+    const btn = document.getElementById('btnAgre');
+    if (accion == 1) {
+        btn.innerHTML = 'Agregar';
+    } else if (accion == 2) {
+        btn.innerHTML = 'Agregar otro artista';
+    } else if (accion == 3) {
+        btn.innerHTML = 'Grabar Inscripción';
+    }
+}
 
-    //Al cambiar el evento: actualizar el valor unitario de inscripción
-    $("#cboEvento").on("change", function () {
-        consultarVrInscrip();
-    });
+//Funciones asincrónicas para el llenado de combos (guía 1.4.2.x)
+async function llenarComboEventos() {
+    let url = dir + "evento/listadoEventos";
+    let rpta = await llenarComboGral(url, "#cboEvento");
+    if (rpta == "Termino") {
+        await vrInscEvento();
+    }
+}
 
-    //Al cambiar la banda: llenar el combo de artistas de esa banda
-    $("#cboBanda").on("change", function () {
-        llenarComboArtXBand();
-    });
+async function llenarComboBandas() {
+    $("#cboArtBand").empty(); // (la guía escribe "cboBandArt": es el combo de artistas)
+    let url = dir + "banda/listadoBandas";
+    let rpta = await llenarComboGral(url, "#cboBanda");
+    if (rpta == "Termino") {
+        await llenarComboArtista();
+    }
+}
 
-    //Al seleccionar un artista: mostrar su instrumento
-    $("#cboArtBand").on("change", function () {
-        let idAB = $(this).val();
-        let art = artistasBanda.find(x => x.idArtBand == idAB);
-        $("#txtInstrum").val(art ? art.instrumento : "");
-    });
-
-    //Fecha actual del sistema
-    $("#lblFechaAct").text(fechaHoy());
-
-    //Llenado de los combos
-    llenarComboEvento();
-    llenarComboBanda();
-
-    //Llenado de la tabla
-    llenarTabla();
-
-    //Listener para la tabla (datatable): evento click sobre un registro (tr) de la tabla
-    $("#tablaDatos").on("click", "tbody tr", function (evento) {
-        evento.preventDefault();
-        if ($(this).hasClass("selected")) {
-            $(this).removeClass("selected");
-        } else {
-            $("#tablaDatos tbody tr.selected").removeClass("selected");
-            $(this).addClass("selected");
-            editarFila($(this).closest("tr"));
+async function llenarComboArtista() {
+    let idB = $("#cboBanda").val();
+    let url = dir + "artBand/datosArtBanda?dato=" + idB + "&cmd=1";
+    let rpta = await llenarComboGral(url, "#cboArtBand");
+    if (rpta == "Termino") {
+        await consultarInstrum();
+    }
+    //Control de cambio de banda durante edición/pre-inscripción (guía 1.4, pág. 12)
+    if (sw == 0) {
+        sw = 1;
+        idCtlBand = $("#cboBanda").val();
+    } else {
+        let ktblDM = document.getElementById("tablaDetalleMae").rows.length;
+        let ktbIDa = $("#tablaDatos tr").length;
+        if (idB != idCtlBand) {
+            if (ktblDM > 0 || ktbIDa > 2) {
+                alerta("No permitido cambiar Banda mientras en edición o Consulta", "Alerta");
+                $("#cboBanda").val(idCtlBand);
+                await llenarComboArtista(); // Restaura el combo de la banda en sesión
+                return;
+            }
         }
-    });
-
-});  //Del: jQuery
-
-
-async function llenarTabla() {
-    let url = dir + "inscrip/consultaInscrip?comando=2&dato=0";
-    let rpta = await llenarTablaGral(url, "#tablaDatos");
-    if (rpta != "Termino") {
-        alerta("Error en llenado de tabla", "Error en procedimiento");
+        if (ktblDM > 0) {
+            quitarArtistaCmbPreInscCombo();
+        } else if (ktbIDa > 2) {
+            retirarDatosCmboArtBand();
+        }
     }
 }
 
-//Buscar desde la tabla: consulta por el nro. de inscripción de la fila seleccionada
-function editarFila(datosFila) {
-    let nroInsc = datosFila.find("td:eq(1)").text();  // Columna 1 (td:eq(1)): nroInsc
-    if (nroInsc > 0) {
-        ConsultarXCodigo(nroInsc);
-        return;
-    }
-    alerta("Sin registros", "Procedimiento incompleto");
-}
-
-function Cancelar() {
-    $("#txtCodigo").val("0");
-    $("#cboEvento")[0].options[0].selected = true;
-    consultarVrInscrip();
-    $("#cboBanda")[0].options[0].selected = true;
-    llenarComboArtXBand();
+//Limpiar los datos de entrada (guía 1.4.2.xvi)
+function limpiar() {
+    $("#lblFechaInsc").text("");
+    $("#lblFechaAct").text(fechaHoy());
     $("#txtRepres").val("");
     $("#txtTelRep").val("");
     $("#txtValorTot").val("");
-    $("#lblFechaInsc").text(fechaHoy());
-    //Limpiar el detalle de artistas
-    limpiarDetalle();
-}
-
-//Limpiar el detalle de artistas de la inscripción
-function limpiarDetalle() {
-    detalleArtistas = [];
-    $("#tablaDetalleMae").empty();
-    $("#seccionDetalleMae").hide();
-    $("#mensajeSinDetalle").hide();
-    $("#txtEdad").val("");
     $("#txtInstrum").val("");
+    $("#txtEdad").val("");
+    alerta("Ya no hay más artistas para preinscribir", "Advertencia");
+    cambiarLblBtnAgregar(3);
+    controlCmboIncritos();
 }
 
-//Adicionar el artista seleccionado (combo + edad) al detalle de la inscripción
-function agregarArtista() {
-    let idAB = $("#cboArtBand").val();
-    let edad = $("#txtEdad").val();
-    if (idAB == null || idAB <= 0) {
-        alerta("Seleccione un artista", "Error en procedimiento");
-        return;
-    }
-    if (isNaN(edad) || parseInt(edad, 10) <= 0 || edad.trim() == "") {
-        alerta("Error, la edad no es válida", "Error en procedimiento");
-        $("#txtEdad").trigger("focus");
-        return;
-    }
-    //Validar que el artista no esté ya en el detalle
-    if (detalleArtistas.find(x => x.idArtBand == idAB)) {
-        alerta("El artista ya está en el detalle de la inscripción", "Error en procedimiento");
-        return;
-    }
-    let art = artistasBanda.find(x => x.idArtBand == idAB);
-    detalleArtistas.push({
-        idArtBand: parseInt(idAB, 10),
-        edad: parseInt(edad, 10)
-    });
-    pintarDetalle(art.idArtBand, art.artista, art.instrumento, edad);
-    actualizarValorTot();
+//Cancelar/Limpiar el formulario completo (guía 1.4.2.xvii)
+function Cancelar() {
+    limpiar();
+    $("#txtCodigo").val("0");
+    llenarComboBandas();
+    $("#cboBanda").trigger("focus");
+    sw = 0;
+    cambiarLblBtnAgregar(1);
+    $("#cboBanda").trigger("focus");
+    $("#txtCodigo").prop("disabled", true);
+    $("#seccionDetalleMae").hide();
+    detMae = []; // Limpia el array de registros realizados
+    // Limpia los registros del DataTable del formulario
+    const tbody = document.querySelector('#tablaDatos tbody');
+    tbody.innerHTML = '';
+    $('#tablaDetalleMae tr:not(:has(th))').remove();
+    //Referencia vigente del DataTable (llenarTablaGral lo reinicializa)
+    oTabla = $("#tablaDatos").DataTable();
+    oTabla.clear().draw();
 }
 
-//Pintar una fila del detalle de artistas inscritos
-function pintarDetalle(idArtBand, nomArt, nomIns, edad) {
-    $("#seccionDetalleMae").show();
-    $("#mensajeSinDetalle").hide();
-    let fila = '<tr>' +
-        '<td>' + idArtBand + '</td>' +
-        '<td>' + nomArt + '</td>' +
-        '<td>' + nomIns + '</td>' +
-        '<td>' + edad + '</td>' +
-        '<td><button type="button" class="btn btn-danger btn-sm btnQuitar">Quitar</button></td>' +
-        '</tr>';
-    $("#tablaDetalleMae").append(fila);
-    //Quitar un artista del detalle: la posición de la fila coincide con la del arreglo
-    $("#tablaDetalleMae tr").last().find(".btnQuitar").on("click", function () {
-        let idx = $(this).closest("tr").index();
-        detalleArtistas.splice(idx, 1);
-        $(this).closest("tr").remove();
-        if (detalleArtistas.length == 0) {
-            $("#seccionDetalleMae").hide();
-            $("#mensajeSinDetalle").show();
+//Llenar la tabla de consulta con el detalle de la inscripción (guía 1.5.5.ii)
+async function llenarTabla() {
+    let codInsc = parseInt($("#txtCodigo").val()) || 0;
+    if (codInsc <= 0) {
+        alerta("Número de inscripción no válido", "Error");
+        $("#txtCodigo").trigger("focus");
+        return;
+    }
+
+    let url = dir + "detInscripc/consultaDatosDetInscrip?nroInsc=" + codInsc;
+    let rpta = await llenarTablaGral(url, "#tablaDatos");
+    if (rpta != "Termino") { // llenarTablaGral (Tablas.js) retorna "Termino"
+        alerta("Búsqueda: " + codInsc + ", sin artistas inscritos o no encontrada la inscripción", "Alerta/Información");
+    }
+}
+
+//Retirar del combo de artistas por banda los ya registrados en la tabla
+//de consulta (guía 1.5.5.iii)
+function retirarDatosCmboArtBand() {
+    let kRgtros = $("#tablaDatos tr").length;
+    if (kRgtros > 0) {
+        for (let i = 1; i <= kRgtros; i++) {
+            let codAB = $("#tablaDatos").find("tr").eq(i).find("td").eq(2).html();
+            $("#cboArtBand option[value='" + codAB + "']").remove();
         }
-        actualizarValorTot();
-    });
-}
-
-//Actualizar el valor total: valor unitario del evento x nro. de artistas del detalle
-function actualizarValorTot() {
-    let vrUnit = parseFloat($("#lblVrIndInsc").text());
-    if (isNaN(vrUnit)) {
-        vrUnit = 0;
     }
-    $("#txtValorTot").val((vrUnit * detalleArtistas.length).toLocaleString("es-CO"));
 }
 
-//Consultar o buscar una inscripción por el evento y la banda seleccionados
+//Consultar los datos de la cabecera de una inscripción (guía 1.5.5.iv)
 async function Consultar() {
     try {
-        let idEvento = $("#cboEvento").val();
-        let idBanda = $("#cboBanda").val();
-        if (idEvento == null || idEvento <= 0 || idBanda == null || idBanda <= 0) {
-            alerta("Seleccione el evento y la banda", "Error en procedimiento");
+        limpiar();
+        $("#txtCodigo").prop("disabled", false);
+        let cod = parseInt($("#txtCodigo").val()) || 0;
+        if (cod <= 0) {
+            $("#txtCodigo").val("");
+            $("#txtCodigo").trigger("focus");
+            alerta("Ingresar el código de la inscripción", "Continuar");
             return;
         }
-        let url = dir + "inscrip/consultaInscrip?comando=4&dato=" + idEvento + "&dato2=" + idBanda;
+
+        $("#txtCodigo").prop("disabled", true);
+        var url = dir + "inscripc/buscarInscrip?nroInsc=" + cod;
         const datosOut = await fetch(url, {
             method: "GET",
             mode: "cors",
-            headers: {
-                "content-type": "application/json",
-            }
+            headers: { "content-type": "application/json" }
         });
-        const datosIn = await datosOut.json();
-        if (datosIn == "") {
-            alerta("La banda no está inscrita en el evento seleccionado", "Información del proceso");
+
+        const Rpta = await datosOut.json();
+        if (Rpta == "") {
+            alerta("No se encontró inscripción con nro: " + cod, "Información");
+            $("#txtCodigo").val("0");
             return;
         }
-        await ConsultarXCodigo(datosIn[0].codigo);
+
+        $("#tablaDatos tr").empty();
+        await llenarTabla();
+        $("#cboEvento").val(Rpta[0].idEvento);
+        await vrInscEvento(); // Actualiza el valor unitario del evento de la inscripción
+        $("#lblFechaInsc").text(Rpta[0].fec);
+        $("#txtRepres").val(Rpta[0].repre);
+        $("#txtTelRep").val(Rpta[0].telef);
+        $("#txtValorTot").val(Rpta[0].vrTot);
+        $("#cboBanda").val(Rpta[0].idBand);
+        idCtlBand = Rpta[0].idBand;
+        //Alinea el combo de artistas con la banda de la inscripción y retira
+        //los artistas ya inscritos (igual que la guía 1.7.6 en grabarInscripc)
+        await llenarComboArtista();
+        await retirarDatosCmboArtBand();
     } catch (error) {
-        alerta("Error: " + error, "Error al consultar");
+        alerta(error, "Error: ");
     }
 }
 
-//Consultar una inscripción por su código (nro. de inscripción)
-async function ConsultarXCodigo(codigo) {
+// ================= PRE-INSCRIPCIÓN (guía 1.6) =================
+// Funciones invocadas por los listener de la sección 1.4 (pág. 12)
+
+//Control del combo de artistas inscritos (guía 1.6.i)
+function controlCmboIncritos() {
+    let kArtBand = $("#cboArtBand option").length;
+    if (kArtBand <= 0) {
+        alerta("Sin Artistas para inscribir", "Alerta");
+        cambiarLblBtnAgregar(3);
+    }
+}
+
+//Mostrar los inscritos de la pre-inscripción en la tabla HTML (guía 1.6.ii)
+function mostrarInscritos() {
+    let detalles = $("#tablaDetalleMae");
+    detalles.empty();
+    detMae.forEach((rgtro, index) => {
+        detalles.append(`
+            <tr>
+                <td>${rgtro.idArtBand}</td>
+                <td>${rgtro.nombre}</td>
+                <td>${rgtro.edad}</td>
+                <td><button class="btn btn-danger btn-sm" onclick="eliminarRgtroPreInscrip(${index})">Eliminar</button></td>
+            </tr>
+        `);
+    });
+
+    $("#seccionDetalleMae").slideDown();
+    if (detMae.length === 0) {
+        $("#mensajeSinDetalle").show();
+    } else {
+        $("#mensajeSinDetalle").hide();
+    }
+}
+
+//Recalcular el valor total de la inscripción (guía 1.6.v)
+function vrTotalInscrip() {
+    let vrIndInsc = parseInt($("#lblVrIndInsc").text()) || 0;
+    let vrTot = document.getElementById("tablaDetalleMae").rows.length * vrIndInsc;
+    $("#txtValorTot").val(vrTot);
+}
+
+//Recuperar un artista al combo tras eliminarlo de la pre-inscripción (guía 1.6.vi)
+function recuperarArtCmbo(codArtAB, name) {
+    let cmbAB = document.getElementById('cboArtBand');
+    var opt = document.createElement('option');
+    opt.value = codArtAB;
+    opt.innerHTML = name;
+    cmbAB.appendChild(opt);
+    consultarInstrum();
+}
+
+//Eliminar un registro del arreglo en memoria detMae (guía 1.6.vii)
+function eliminarRgtroPreInscrip(index) {
+    var codArtAB = detMae[index].idArtBand;
+    var name = detMae[index].nombre;
+    let txt = "¿Seguro desea eliminar la inscripción de: " + name + "?";
+
+    let rpta = window.confirm(txt);
+    if (!rpta) {
+        alerta('Cancelada acción de eliminación', 'Atención');
+        return;
+    } else {
+        detMae.splice(index, 1);
+        recuperarArtCmbo(codArtAB, name);
+        cambiarLblBtnAgregar(1);
+        alerta("Registro de: " + name + " ha sido borrado", "Información");
+        mostrarInscritos();
+        vrTotalInscrip();
+    }
+}
+
+//Quitar del combo los artistas ya existentes en tablaDetalleMae (guía 1.6.viii)
+function quitarArtistaCmbPreInscCombo() {
+    let kRgtros = $("#tablaDetalleMae tr").length;
+    if (kRgtros > 0) {
+        for (let i = 0; i < kRgtros; i++) {
+            let codAB = $("#tablaDetalleMae").find('tr').eq(i).find('td').eq(0).html();
+            $("#cboArtBand option[value='" + codAB + "']").remove();
+        }
+    }
+    controlCmboIncritos();
+}
+
+//Adicionar un artista al arreglo local detMae (guía 1.6.ix)
+function agregarDetalle_PreInsc() {
     try {
-        let url = dir + "inscrip/consultaInscrip?comando=1&dato=" + codigo;
-        const datosOut = await fetch(url, {
-            method: "GET",
-            mode: "cors",
-            headers: {
-                "content-type": "application/json",
-            }
-        });
-        const datosIn = await datosOut.json();
-        if (datosIn == "") {
-            alerta("No se encontró la inscripción con código: " + codigo, "Información del proceso");
+        let idCodAB = $("#cboArtBand").val();
+        let nombreArt = $("#cboArtBand option:selected").text();
+        let edadA = parseInt($("#txtEdad").val()) || 0;
+
+        if (!idCodAB) {
+            alerta("Debe seleccionar un artista.", "Alerta");
+            $("#cboArtBand").trigger("focus");
             return;
         }
-        //Seleccionar el evento y la banda de la inscripción
-        $("#cboEvento").val(datosIn[0].idEvento);
-        await consultarVrInscrip();
-        $("#cboBanda").val(datosIn[0].idBanda);
-        await llenarComboArtXBand();
-        //Llenar los datos del encabezado
-        $("#txtCodigo").val(datosIn[0].codigo);
-        $("#lblFechaInsc").text(datosIn[0].fecha);
-        $("#txtRepres").val(datosIn[0].represent);
-        $("#txtTelRep").val(datosIn[0].tel);
-        $("#txtValorTot").val(datosIn[0].valor.toLocaleString("es-CO"));
-        //Cargar el detalle de artistas inscritos
-        limpiarDetalle();
-        let urlDet = dir + "inscrip/consultaInscrip?comando=3&dato=" + datosIn[0].codigo;
-        const detOut = await fetch(urlDet, {
-            method: "GET",
-            mode: "cors",
-            headers: {
-                "content-type": "application/json",
-            }
-        });
-        const detIn = await detOut.json();
-        for (i = 0; i < detIn.length; i++) {
-            detalleArtistas.push({
-                idArtBand: detIn[i].idArtBand,
-                edad: detIn[i].edad
-            });
-            pintarDetalle(detIn[i].idArtBand, detIn[i].artista, detIn[i].instrumento, detIn[i].edad);
+
+        if (isNaN(edadA) || edadA <= 0) {
+            alerta("Edad no válida, debe ser mayor a 0.", "Alerta");
+            $("#txtEdad").trigger("focus");
+            return;
         }
-    } catch (error) {
-        alerta("Error: " + error, "Error al consultar");
+
+        detMae.push({
+            idArtBand: idCodAB,
+            nombre: nombreArt,
+            edad: edadA
+        });
+
+        mostrarInscritos();
+        vrTotalInscrip();
+        quitarArtistaCmbPreInscCombo();
+        alerta(nombreArt + ", agregado con éxito", "Procedimiento con éxito");
+        idCtlBand = $("#cboBanda").val();
+
+        let cantCmbo = document.getElementById('cboArtBand').length;
+        if (cantCmbo >= 1) {
+            let agregarMas = confirm("¿Desea agregar otro artista a la preinscripción? si no, presionar: Cancelar");
+            if (agregarMas) {
+                $("#txtEdad").val("");
+                $("#cboArtBand").trigger("focus");
+                cambiarLblBtnAgregar(2);
+            } else {
+                cambiarLblBtnAgregar(3);
+            }
+        }
+    } catch {
+        // Manejo de error
     }
 }
 
-function alerta(msj, titulo = "Información") {  // Usa sweetalert2.all.min.js (Scripts_Form/Comunes)
+// ================= GRABAR INSCRIPCIÓN EN BD (guía 1.7) =================
+
+//Validar los datos generales de la inscripción antes de grabar (guía 1.7.6.i)
+function validar(nombre, tel, vrTi) {
+    var msj = "";
+    if (nombre == undefined || nombre.trim() == "") {
+        msj += "Falta el nombre del representante. \n";
+    }
+    if (tel == undefined || tel.trim() == "") {
+        msj += "Falta el teléfono del representante. \n";
+    }
+    if (isNaN(vrTi) || vrTi <= 0) {
+        msj += "Valor total inscripción debe ser mayor a 0. \n";
+    }
+    if (msj != "") {
+        alerta(msj, "Error en procedimiento");
+        $("#txtRepres").trigger("focus");
+        return false;
+    }
+    return true;
+}
+
+//Control del combo de artistas tras grabar o consultar (guía 1.7.6.ii)
+function controlCmboArtistas() {
+    $("#txtInstrum").val("");
+    $("#txtEdad").val("");
+    let kArtBand = $("#cboArtBand option").length;
+    if (kArtBand <= 0) {
+        alerta("Sin Artistas para inscribir", "Alerta");
+    } else {
+        consultarInstrum();
+    }
+}
+
+//Grabar la inscripción en la BD: CASO 1 nuevo registro (maestro-detalle,
+//txtCodigo = 0) o CASO 2 adición de un artista a una inscripción existente
+//(txtCodigo > 0) (guía 1.7.6.iii)
+async function grabarInscripc() {
+    try {
+        let nroIn = $("#txtCodigo").val();
+        let idEve = $("#cboEvento").val();
+        let idBan = $("#cboBanda").val();
+        let repre = $("#txtRepres").val();
+        let telRe = $("#txtTelRep").val();
+        let vrTot = parseFloat($("#txtValorTot").val()) || 0;
+
+        if (!validar(repre, telRe, vrTot)) return;
+
+        // CASO 1: Nuevo registro en BD (nroIn == 0)
+        if (nroIn == 0) {
+            let fechInsc = new Date().toISOString().split('T')[0];
+
+            if (detMae.length === 0) {
+                alerta("Debe inscribir al menos un artista.", "Advertencia");
+                $("#cboArtBand option").trigger("focus");
+                return;
+            }
+
+            let datosParaInscripc = {
+                idEvento: idEve,
+                fecha: fechInsc,
+                idBanda: idBan,
+                represent: repre,
+                telRepresent: telRe,
+                valorInscrip: vrTot,
+                inscritos: detMae
+            };
+
+            let url = dir + "inscripc/agregarInscrip";
+            const envio = await fetch(url, {
+                method: "POST",
+                mode: "cors",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(datosParaInscripc)
+            });
+
+            const rpta = await envio.text();
+            let nroInsc = rpta.toString();
+
+            if (nroInsc <= 0) {
+                alerta("Se produjo error al grabar inscripción, revisar", "Error en grabar");
+                return;
+            }
+
+            $("#txtCodigo").val(nroInsc);
+            $("#seccionDetalleMae").hide();
+            let inscritos = $("#tablaDetalleMae");
+            inscritos.empty();
+            cambiarLblBtnAgregar(1);
+            await Consultar();
+            alerta("Se generó la inscripción #" + nroInsc, "Proceso con éxito");
+            return;
+        }
+        // CASO 2: Adición a inscripción existente en BD (nroIn > 0)
+        else if (parseInt(nroIn, 10) > 0) {
+            let idCodAB = $("#cboArtBand").val();
+            let edadArt = $("#txtEdad").val();
+
+            if (!idCodAB) {
+                alerta("Debe seleccionar un artista.", "Alerta");
+                $("#cboArtBand").trigger("focus");
+                return;
+            }
+
+            if (isNaN(edadArt) || edadArt <= 0) {
+                alerta("Edad no válida, debe ser mayor a 0.", "Alerta");
+                $("#txtEdad").trigger("focus");
+                return;
+            }
+
+            let nombArt = $("#cboArtBand option:selected").text();
+            let txt = "¿Seguro desea agregar el artista: " + nombArt + " a la inscripción?";
+
+            let continua = window.confirm(txt);
+            if (!continua) {
+                alerta('Cancelada acción de agregar', 'Información');
+                return;
+            }
+
+            let url = dir + "detInscripc/agregarDetalleInd?nroInscrip=" + nroIn + "&idArtBand=" + idCodAB + "&edad=" + edadArt;
+            const datosEnvio = await fetch(url, {
+                method: "POST",
+                mode: "cors",
+                headers: { "content-type": "application/json" }
+            });
+
+            const rpta = await datosEnvio.json();
+            if (rpta == 1) {
+                await llenarTabla();
+                await llenarComboArtista();
+                await retirarDatosCmboArtBand();
+                alerta("Se grabó el artista: " + nombArt + " en la inscripción: " + nroIn, "Información");
+                controlCmboArtistas();
+            } else {
+                alerta("Error en agregar artista, reintente por favor", "Alerta");
+            }
+        }
+    } catch (error) {
+        alerta("Error al grabar inscripción: " + error, "Alerta");
+    }
+}
+
+// ================= ELIMINAR DETALLE DE UNA INSCRIPCIÓN EN BD (guía 1.8) =================
+
+//Borrar en la BD un registro (artista) del detalle de la inscripción
+//(guía 1.8.3.i)
+async function eliminarDetInsc(idDetInsc) {
+    try {
+        let url = dir + "detInscripc/borrarDetalle?idDet=" + idDetInsc;
+        let respuesta = await fetch(url, {
+            method: "DELETE",
+            headers: { "Content-Type": "application/json" }
+        });
+
+        let rpta = await respuesta.text();
+
+        if (rpta.substring(0, 5) === "Error") {
+            alerta(rpta, "Error en procedimiento");
+        } else {
+            alerta(rpta, "Atención");
+            $("#tablaDatos tr").empty();
+            await llenarTabla();
+            await llenarComboArtista();
+            await retirarDatosCmboArtBand();
+            controlCmboArtistas();
+        }
+    } catch (err) {
+        alerta(err, "No se pudo eliminar el registro.");
+    }
+}
+
+// ================= MODIFICAR EL ENCABEZADO DE LA INSCRIPCIÓN EN BD (guía 1.9) =================
+
+//Modificar los datos del encabezado de la inscripción (evento, representante
+//y teléfono) en la BD (guía 1.9.3.i)
+async function Modificar() {
+    let nroInsc = $("#txtCodigo").val();
+    if (isNaN(nroInsc) || nroInsc.trim() === "" || parseInt(nroInsc, 10) <= 0) {
+        alerta("Solo se modifica un registro existente.", "Atención");
+        $("#txtCodigo").trigger("focus");
+        return;
+    }
+
+    let idEven = $("#cboEvento").val();
+    let repres = $("#txtRepres").val();
+    let telRep = $("#txtTelRep").val();
+
+    if (repres.trim() === "" || telRep.trim() === "") {
+        alerta("Faltan datos válidos para modificar", "Advertencia");
+        $("#txtRepres").trigger("focus");
+        return;
+    }
+
+    let rpta = window.confirm('¿Seguro de modificar la inscripción: ' + nroInsc + '?');
+    if (rpta == false) {
+        alerta('Cancelada acción de modificación', 'Información');
+        return;
+    } else {
+        let datosParaModif = {
+            codigo: parseInt(nroInsc, 10),
+            idEvento: parseInt(idEven, 10),
+            represent: repres,
+            telRepresent: telRep
+        };
+
+        try {
+            let url = dir + "inscripc/modificaEncabinscrip";
+            const rpta = await fetch(url, {
+                method: "PUT",
+                mode: "cors",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(datosParaModif),
+            });
+
+            const txtRpta = await rpta.text();
+            alerta(txtRpta, "Atención");
+        } catch (error) {
+            alerta("Error: " + error, "Error de procedimiento");
+        }
+    }
+}
+
+//Alerta general de los formularios (usa sweetalert2.all.min.js)
+function alerta(msj, titulo = "Información") {
     Swal.fire({
         position: 'center',
         type: 'info',
@@ -358,108 +615,87 @@ function alerta(msj, titulo = "Información") {  // Usa sweetalert2.all.min.js (
     });
 }
 
-//Validar la información de entrada: representante, teléfono y mínimo 1 artista
-function validar(repres, tel) {
-    var msj = "Falta ";
-    if (repres.trim() == "") {
-        msj = msj + "El representante no válido, \n";
-    }
-    if (tel.trim() == "") {
-        msj = msj + "el teléfono no válido. \n";
-    }
-    if (detalleArtistas.length == 0) {
-        msj = msj + "ingresar mínimo un artista (solitario) en el detalle. \n";
-    }
-    if (msj != "Falta ") {
-        alerta(msj, "Error en procedimiento");
-        return false;
-    }
-    return true;
-}
+jQuery(function () {
 
-//ejecutarComando: utilizada tanto para agregar (POST) como para modificar (PUT)
-async function ejecutarComando(accion) {
-    //Capturar los datos de entrada
-    let Codi = $("#txtCodigo").val();
-    let idEv = $("#cboEvento").val();
-    let idBa = $("#cboBanda").val();
-    let Repr = $("#txtRepres").val();
-    let TelR = $("#txtTelRep").val();
+    //Carga el menú
+    $("#dvMenu").load("../Paginas/Menu.html");
 
-    //Validar información
-    if (idEv == null || idEv <= 0 || idBa == null || idBa <= 0) {
-        alerta("Seleccione el evento y la banda", "Error en procedimiento");
-        return;
-    }
-    if (!validar(Repr, TelR)) {
-        $("#txtRepres").trigger("focus");
-        return;
-    }
+    //Registrar los botones para responder al evento click
 
-    //Confirmar Procedimiento
-    let rpta = "";
-    if (accion === "POST") {
-        rpta = window.confirm('¿Estás seguro de inscribir la banda en el evento con ' + detalleArtistas.length + ' artista(s)?');
-        if (rpta == false) {
-            alerta('Cancelada acción de Agregar', 'Información');
-            return;
+    //Listener del botón Agregar (guía 1.4, pág. 12, xi)
+    $("#btnAgre").on("click", function () {
+        const txtBtnAgre = document.getElementById('btnAgre');
+        let txt = txtBtnAgre.innerHTML;
+        let nroInsc = $("#txtCodigo").val();
+        if (txt == "Grabar Inscripción" || parseInt(nroInsc, 10) > 0) {
+            grabarInscripc(); // Grabar en BD (guía 1.7.6.vi)
+        } else { // Agregar artistas a la pre-inscripción como detalle
+            agregarDetalle_PreInsc();
         }
-    }
-    else if (accion === "PUT") {
-        if (isNaN(Codi) || parseInt(Codi, 10) <= 0 || Codi.trim() == "") {
-            alerta("Código no válido para modificar registro", "Alerta");
-            return;
-        }
-        rpta = window.confirm('¿Estás seguro de modificar la inscripción: ' + Codi + '? (el valor no se recalcula)');
-        if (rpta == false) {
-            alerta('Cancelada acción de Modificar', 'Información');
-            return;
-        }
-    }
-    else {
-        alerta("Procedimiento no válido", "Error");
-        return;
-    }
+    });
 
-    //Crear JSon: encabezado (tblInscrip) + detalle de artistas (tblDetInsc)
-    //El valor total lo calcula la API (valor del evento x nro. de artistas)
-    let datosOut = {
-        tblInsc: {
-            codigo: parseInt(Codi, 10) || 0,
-            idEvento: parseInt(idEv, 10),
-            idBanda: parseInt(idBa, 10),
-            represent: Repr,
-            telRepresent: TelR
-        },
-        detalle: detalleArtistas
-    }
+    //Listener del botón Modificar (guía 1.9.3.ii)
+    $("#btnModi").on("click", function () {
+        Modificar();
+    });
 
-    //Invocar el servicio con fetch
-    try {
-        const response = await fetch(dir + "inscrip", {
-            method: accion,
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify(datosOut),
-        });
+    //Listener del botón Consultar (guía 1.5.5.v)
+    $("#btnBusc").on("click", function () {
+        Consultar();
+    });
 
-        const rpta = await response.json();
-        if (rpta == -1)
-            alerta("La banda ya está inscrita en el evento", "Error en proceso");
-        else if (rpta == -2)
-            alerta("El detalle está vacío: mínimo un artista (solitario)", "Error en proceso");
-        else if (rpta == 0)
-            alerta("Error al momento del grabar, reintente por favor", "Error en grabar");
-        else if (rpta > 0) {
-            alerta("Registro grabado con éxito", "Proceso con éxito");
-            $("#txtCodigo").val(rpta);  // Nro. de la inscripción grabada
-            await ConsultarXCodigo(rpta);  // Recarga la inscripción con el detalle
-            await llenarTabla();
+    //Listener del botón Cancelar (guía 1.4.2.xviii)
+    $("#btnCanc").on("click", function () {
+        Cancelar();
+    });
+
+    //Listener delegado del botón Eliminar (Quitar) de la tabla de consulta
+    //de la inscripción (guía 1.8.3.ii)
+    $(document).on("click", "#tablaDatos .btnEliminar", function (evento) {
+        evento.preventDefault();
+        evento.stopPropagation();
+
+        let fila = $(this).closest("tr");
+        let idDetalleInsc = fila.find("td:eq(0)").text();
+        let nombre = fila.find("td:eq(3)").text();
+        let codAB = fila.find("td:eq(2)").text();
+
+        let txt = "¿Seguro desea eliminar la inscripción de: " + nombre + "?";
+        if (confirm(txt)) {
+            eliminarDetInsc(parseInt(idDetalleInsc));
         }
-        else
-            alerta(rpta, "Error en procedimiento");
-    } catch (error) {
-        alerta("Error: " + error, "Error en procedimiento");
-    }
-}
+    });
+
+    //Listener del botón Impresión
+    $("#btnImpr").on("click", function () {
+        alerta("Impresión", "En futura construcción");
+    });
+
+    //Eventos onchange de los combos (guía 1.4.2.xii a xiv)
+
+    //En combo evento: consultar el valor individual de inscripción
+    $("#cboEvento").on("change", function () {
+        vrInscEvento();
+    });
+
+    //En combo banda: llenar el combo de artistas de la banda
+    $("#cboBanda").on("change", function () {
+        llenarComboArtista();
+    });
+
+    //En combo de artistas: consultar el instrumento que toca
+    $("#cboArtBand").on("change", function () {
+        consultarInstrum();
+    });
+
+    //Fecha actual del sistema (guía 1.4.2.vii)
+    $("#lblFechaAct").text(fechaHoy());
+
+    //Llenado de los combos (guía 1.4.2.xi)
+    llenarComboEventos();
+    llenarComboBandas();
+
+    //Focus inicial en el combo de bandas (guía 1.4.2.v)
+    $("#cboBanda").trigger("focus");
+
+});  //Del: jQuery

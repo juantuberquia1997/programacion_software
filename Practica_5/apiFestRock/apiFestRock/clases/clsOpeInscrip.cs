@@ -1,4 +1,5 @@
 using apiFestRock.Models;
+using static apiFestRock.clases.auxiliar.clsInscripcionCompleta;
 
 namespace apiFestRock.clases
 {
@@ -16,6 +17,29 @@ namespace apiFestRock.clases
         public clsOpeInscrip(BdEventosContext ctx)
         {
             this.ctx = ctx;
+        }
+
+        //Propiedad con los datos de la inscripción (encabezado): misma del Model
+        //(guía 1.5.1.iv Bis)
+        public TblInscrip tblInsc { get; set; }
+
+        //iqueryable: consultar el encabezado de una inscripción por su nro.
+        //(guía 1.5.1.v)
+        public IQueryable consultarInscrip(int idCod)
+        {
+            return from x in ctx.TblInscrips
+                   join e in ctx.TblEventos on x.IdEvento equals e.Codigo
+                   where x.Codigo == idCod
+                   select new {
+                       nro = x.Codigo,
+                       idEvento = x.IdEvento,
+                       vrInd = e.VrInscEvent,
+                       fec = x.Fecha,
+                       repre = x.Represent,
+                       telef = x.TelRepresent,
+                       idBand = x.IdBanda,
+                       vrTot = x.ValorInscrip
+                   };
         }
 
         //iqueryable: consultar una inscripción por su código (nro. de inscripción)
@@ -194,6 +218,77 @@ namespace apiFestRock.clases
             catch
             {
                 return 0; // Error de ejecución
+            }
+        }
+
+        //Grabar el encabezado de la inscripción: retorna el nro. (código)
+        //generado para el nuevo registro (guía 1.7.3.ii Bis)
+        public int registrarEncabezado(inscripCompleta datosEncab)
+        {
+            var ultimo = ctx.TblInscrips.Max(x => (int?)x.Codigo) ?? 0;
+            int nuevoID = (ultimo <= 0) ? 1 : ultimo + 1;
+
+            TblInscrip tblInsc = new TblInscrip();
+            tblInsc.Codigo = nuevoID;
+            tblInsc.IdEvento = datosEncab.IdEvento;
+            tblInsc.Fecha = DateTime.Now.ToShortDateString();
+            tblInsc.IdBanda = datosEncab.IdBanda;
+            tblInsc.Represent = datosEncab.Represent;
+            tblInsc.TelRepresent = datosEncab.TelRepresent;
+            tblInsc.ValorInscrip = datosEncab.ValorInscrip;
+
+            ctx.TblInscrips.Add(tblInsc);
+            ctx.SaveChanges();
+            return nuevoID;
+        }
+
+        //Eliminar el encabezado de la inscripción (rollback manual cuando
+        //falla el grabado del detalle) (guía 1.7.3.iii Bis)
+        public void eliminarEncabezado(int idCod)
+        {
+            try
+            {
+                var rgtro = ctx.TblInscrips.FirstOrDefault(d => d.Codigo == idCod);
+                if (rgtro != null)
+                {
+                    ctx.TblInscrips.Remove(rgtro);
+                    ctx.SaveChanges();
+                }
+            }
+            catch
+            {
+                return;
+            }
+        }
+
+        //Modificar los datos del encabezado de la inscripción (evento,
+        //representante y teléfono) usando la propiedad tblInsc (guía 1.9.1)
+        public string Modificar()
+        {
+            try
+            {
+                if (tblInsc.Codigo <= 0)
+                {
+                    return "Inscripción: " + tblInsc.Codigo + ", no es válido.";
+                }
+
+                var p = ctx.TblInscrips.FirstOrDefault(x => x.Codigo == tblInsc.Codigo);
+
+                if (p == null)
+                {
+                    return "Inscripción " + tblInsc.Codigo + ", no existe.";
+                }
+
+                p.IdEvento = tblInsc.IdEvento;
+                p.Represent = tblInsc.Represent;
+                p.TelRepresent = tblInsc.TelRepresent;
+
+                ctx.SaveChanges();
+                return "Inscripción: " + tblInsc.Codigo + ", actualizada correctamente.";
+            }
+            catch
+            {
+                return "Error al actualizar inscripción.";
             }
         }
     }
