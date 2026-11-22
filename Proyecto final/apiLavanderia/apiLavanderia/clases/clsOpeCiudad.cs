@@ -1,6 +1,5 @@
 using apiLavanderia.Models;
 
-
 namespace apiLavanderia.clases
 {
     public class clsOpeCiudad
@@ -46,7 +45,7 @@ namespace apiLavanderia.clases
                        editar = "<a class='btn btn-info btn-sm' href=''><i class='fa fa-search-plus'></i> ir </a>",
                        codigo = IC.IdCiudad,
                        nombre = IC.NombreCiudad,
-                       dpto   = ID.NombreDepartamento
+                       dpto   = ID.IdDepartamento
                    }; // Los 4 <th></th> para la tabla
         }
 

@@ -174,7 +174,6 @@ public partial class LavanderiaContext : DbContext
                 .HasMaxLength(100)
                 .IsUnicode(false)
                 .HasColumnName("nombre_prenda");
-            entity.Property(e => e.Activo).HasColumnName("activo");
         });
 
         modelBuilder.Entity<TblTipoPrendaServicio>(entity =>
@@ -320,10 +319,11 @@ public partial class LavanderiaContext : DbContext
                 .HasMaxLength(150)
                 .IsUnicode(false)
                 .HasColumnName("nombre_apellido_cliente");
-            entity.Property(e => e.NumeroDocumento)
+            entity.Property(e => e.Documento)
                 .HasMaxLength(50)
                 .IsUnicode(false)
-                .HasColumnName("numero_documento");
+                .HasColumnName("documento");
+            entity.Property(e => e.NumeroDocumento).HasColumnName("numero_documento");
         });
 
         modelBuilder.Entity<TblDireccionCliente>(entity =>

@@ -37,16 +37,16 @@ namespace apiLavanderia.clases
                    join ITD in ctx.Set<TblTipoDocumento>() on IE.IdTipoDocumento equals ITD.IdTipoDocumento
                    join IEE in ctx.Set<TblEmpleado>() on IE.EmpleadoIdEmpleado equals IEE.IdEmpleado
                    where IE.DocumentoEmpleado == documento
-                   select new
-                   {
-                       codigo = IE.IdEmpleado,
+                   select new {
+                       codigo     = IE.IdEmpleado,
                        empleado = IEE.IdEmpleado,
-                       nombre = IE.NombreApellidoEmp,
-                       idTD = IE.IdTipoDocumento,
-                       documento = IE.DocumentoEmpleado,
-                       fechaIng = IE.FechaIngreso,
-                       salario = IE.Salario,
-                       act = IE.Activo
+                       nombre     = IE.NombreApellidoEmp,
+                       idTD       = IE.IdTipoDocumento,
+                       //tipoDoc    = ITD.NombreDocumento,
+                       documento  = IE.DocumentoEmpleado,
+                       fechaIng   = IE.FechaIngreso,
+                       salario    = IE.Salario,
+                       act        = IE.Activo
                    };
         }
 
@@ -87,13 +87,12 @@ namespace apiLavanderia.clases
                    join IC in ctx.Set<TblCiudad>() on DE.IdCiudad equals IC.IdCiudad
                    where DE.EmpleadoIdEmpleado == idEmpleado
                    orderby DE.IdDireccionEmpleado
-                    select new {
-                        idDir     = DE.IdDireccionEmpleado,
-                        idCiudad  = DE.IdCiudad,
-                        ciudad    = IC.NombreCiudad,
-                        idDepart  = IC.IdDepartamento,
-                        direccion = DE.DireccionEmpleado
-                    };
+                   select new {
+                       idDir     = DE.IdDireccionEmpleado,
+                       idCiudad  = DE.IdCiudad,
+                       ciudad    = IC.NombreCiudad,
+                       direccion = DE.DireccionEmpleado
+                   };
         }
 
         //iqueryable: telefonos de un empleado (detalle)
