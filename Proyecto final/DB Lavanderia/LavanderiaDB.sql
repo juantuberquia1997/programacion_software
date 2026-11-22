@@ -230,7 +230,9 @@ insert into ciudad (idciudad, iddepartamento, nombre_ciudad) values
 (2, 1, 'bello'),
 (3, 2, 'bogota'),
 (4, 3, 'cali'),
-(5, 4, 'barranquilla');
+(5, 4, 'barranquilla'),
+(6, 5, 'bucaramanga'),
+(7, 5, 'floridablanca');
 go
 
 insert into tipo_telefono (idtipo_telefono, tipo_telefono) values

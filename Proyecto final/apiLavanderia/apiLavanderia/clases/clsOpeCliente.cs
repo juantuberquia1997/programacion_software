@@ -66,12 +66,13 @@ namespace apiLavanderia.clases
                    join IC in ctx.Set<TblCiudad>() on DC.IdCiudad equals IC.IdCiudad
                    where DC.IdCliente == idCliente
                    orderby DC.IdDireccion
-                   select new {
-                       idDir     = DC.IdDireccion,
-                       idCiudad  = DC.IdCiudad,
-                       ciudad    = IC.NombreCiudad,
-                       direccion = DC.DireccionCliente
-                   };
+                    select new {
+                        idDir     = DC.IdDireccion,
+                        idCiudad  = DC.IdCiudad,
+                        ciudad    = IC.NombreCiudad,
+                        idDepart  = IC.IdDepartamento,
+                        direccion = DC.DireccionCliente
+                    };
         }
 
         //iqueryable: telefonos de un cliente (detalle)
@@ -87,6 +88,96 @@ namespace apiLavanderia.clases
                        tipoTel    = IT.TipoTelefono,
                        numero     = TC.Numero
                    };
+        }
+
+        //Agregar una direccion a un cliente existente: retorna 0 = error de
+        //ejecucion, -1 = no existe el cliente, o el codigo de la direccion
+        public int AgregarDireccion(TblDireccionCliente dir)
+        {
+            try
+            {
+                var rgro = ctx.TblClientes.FirstOrDefault(x => x.IdCliente == dir.IdCliente);
+                if (rgro == null)
+                {
+                    return -1; // Error, no existe el cliente
+                }
+                int maxDir = ctx.TblDireccionClientes.Any() ? ctx.TblDireccionClientes.Max(x => x.IdDireccion) : 0;
+                dir.IdDireccion = maxDir + 1;
+                ctx.TblDireccionClientes.Add(dir);
+                ctx.SaveChanges();
+                return dir.IdDireccion;
+            }
+            catch
+            {
+                return 0; // Error de ejecucion
+            }
+        }
+
+        //Agregar un telefono a un cliente existente: retorna 0 = error de
+        //ejecucion, -1 = no existe el cliente, o el codigo del telefono
+        public int AgregarTelefono(TblTelefonoCliente tel)
+        {
+            try
+            {
+                var rgro = ctx.TblClientes.FirstOrDefault(x => x.IdCliente == tel.IdCliente);
+                if (rgro == null)
+                {
+                    return -1; // Error, no existe el cliente
+                }
+                int maxTel = ctx.TblTelefonoClientes.Any() ? ctx.TblTelefonoClientes.Max(x => x.IdTelefono) : 0;
+                tel.IdTelefono = maxTel + 1;
+                ctx.TblTelefonoClientes.Add(tel);
+                ctx.SaveChanges();
+                return tel.IdTelefono;
+            }
+            catch
+            {
+                return 0; // Error de ejecucion
+            }
+        }
+
+        //Modificar una direccion de un cliente: retorna 0 = error de ejecucion,
+        //-1 = no existe la direccion, o el codigo de la direccion modificada
+        public int ModificarDireccion(TblDireccionCliente dir)
+        {
+            try
+            {
+                var rgro = ctx.TblDireccionClientes.FirstOrDefault(x => x.IdDireccion == dir.IdDireccion && x.IdCliente == dir.IdCliente);
+                if (rgro == null)
+                {
+                    return -1; // Error, no existe la direccion
+                }
+                rgro.IdCiudad = dir.IdCiudad;
+                rgro.DireccionCliente = dir.DireccionCliente;
+                ctx.SaveChanges();
+                return rgro.IdDireccion;
+            }
+            catch
+            {
+                return 0; // Error de ejecucion
+            }
+        }
+
+        //Modificar un telefono de un cliente: retorna 0 = error de ejecucion,
+        //-1 = no existe el telefono, o el codigo del telefono modificado
+        public int ModificarTelefono(TblTelefonoCliente tel)
+        {
+            try
+            {
+                var rgro = ctx.TblTelefonoClientes.FirstOrDefault(x => x.IdTelefono == tel.IdTelefono && x.IdCliente == tel.IdCliente);
+                if (rgro == null)
+                {
+                    return -1; // Error, no existe el telefono
+                }
+                rgro.IdTipoTelefono = tel.IdTipoTelefono;
+                rgro.Numero = tel.Numero;
+                ctx.SaveChanges();
+                return rgro.IdTelefono;
+            }
+            catch
+            {
+                return 0; // Error de ejecucion
+            }
         }
 
         //Agregar cliente con su detalle (direcciones y telefonos) en una sola

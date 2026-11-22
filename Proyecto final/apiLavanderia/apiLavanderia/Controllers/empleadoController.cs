@@ -63,6 +63,38 @@ namespace apiLavanderia.Controllers
             }
         }
 
+        //Servicio para agregar una direccion a un empleado
+        [HttpPost("agregarDireccion")]
+        public int AgregarDireccion([FromBody] TblDireccionEmpleado dir)
+        {
+            clsOpeEmpleado oX = new clsOpeEmpleado(ctx);
+            return oX.AgregarDireccion(dir);
+        }
+
+        //Servicio para agregar un telefono a un empleado
+        [HttpPost("agregarTelefono")]
+        public int AgregarTelefono([FromBody] TblTelefonoEmpleado tel)
+        {
+            clsOpeEmpleado oX = new clsOpeEmpleado(ctx);
+            return oX.AgregarTelefono(tel);
+        }
+
+        //Servicio para modificar una direccion de un empleado
+        [HttpPut("modificarDireccion")]
+        public int ModificarDireccion([FromBody] TblDireccionEmpleado dir)
+        {
+            clsOpeEmpleado oX = new clsOpeEmpleado(ctx);
+            return oX.ModificarDireccion(dir);
+        }
+
+        //Servicio para modificar un telefono de un empleado
+        [HttpPut("modificarTelefono")]
+        public int ModificarTelefono([FromBody] TblTelefonoEmpleado tel)
+        {
+            clsOpeEmpleado oX = new clsOpeEmpleado(ctx);
+            return oX.ModificarTelefono(tel);
+        }
+
         //Servicio para agregar un empleado con su detalle
         [HttpPost]
         public int Post([FromBody] clsEmpleadoIn datIn)

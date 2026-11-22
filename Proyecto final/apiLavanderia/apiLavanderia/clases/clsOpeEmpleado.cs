@@ -87,12 +87,13 @@ namespace apiLavanderia.clases
                    join IC in ctx.Set<TblCiudad>() on DE.IdCiudad equals IC.IdCiudad
                    where DE.EmpleadoIdEmpleado == idEmpleado
                    orderby DE.IdDireccionEmpleado
-                   select new {
-                       idDir     = DE.IdDireccionEmpleado,
-                       idCiudad  = DE.IdCiudad,
-                       ciudad    = IC.NombreCiudad,
-                       direccion = DE.DireccionEmpleado
-                   };
+                    select new {
+                        idDir     = DE.IdDireccionEmpleado,
+                        idCiudad  = DE.IdCiudad,
+                        ciudad    = IC.NombreCiudad,
+                        idDepart  = IC.IdDepartamento,
+                        direccion = DE.DireccionEmpleado
+                    };
         }
 
         //iqueryable: telefonos de un empleado (detalle)
@@ -108,6 +109,96 @@ namespace apiLavanderia.clases
                        tipoTel    = IT.TipoTelefono,
                        numero     = TE.Numero
                    };
+        }
+
+        //Agregar una direccion a un empleado existente: retorna 0 = error de
+        //ejecucion, -1 = no existe el empleado, o el codigo de la direccion
+        public int AgregarDireccion(TblDireccionEmpleado dir)
+        {
+            try
+            {
+                var rgro = ctx.TblEmpleados.FirstOrDefault(x => x.IdEmpleado == dir.EmpleadoIdEmpleado);
+                if (rgro == null)
+                {
+                    return -1; // Error, no existe el empleado
+                }
+                int maxDir = ctx.TblDireccionEmpleados.Any() ? ctx.TblDireccionEmpleados.Max(x => x.IdDireccionEmpleado) : 0;
+                dir.IdDireccionEmpleado = maxDir + 1;
+                ctx.TblDireccionEmpleados.Add(dir);
+                ctx.SaveChanges();
+                return dir.IdDireccionEmpleado;
+            }
+            catch
+            {
+                return 0; // Error de ejecucion
+            }
+        }
+
+        //Agregar un telefono a un empleado existente: retorna 0 = error de
+        //ejecucion, -1 = no existe el empleado, o el codigo del telefono
+        public int AgregarTelefono(TblTelefonoEmpleado tel)
+        {
+            try
+            {
+                var rgro = ctx.TblEmpleados.FirstOrDefault(x => x.IdEmpleado == tel.EmpleadoIdEmpleado);
+                if (rgro == null)
+                {
+                    return -1; // Error, no existe el empleado
+                }
+                int maxTel = ctx.TblTelefonoEmpleados.Any() ? ctx.TblTelefonoEmpleados.Max(x => x.IdTelefonoEmpleado) : 0;
+                tel.IdTelefonoEmpleado = maxTel + 1;
+                ctx.TblTelefonoEmpleados.Add(tel);
+                ctx.SaveChanges();
+                return tel.IdTelefonoEmpleado;
+            }
+            catch
+            {
+                return 0; // Error de ejecucion
+            }
+        }
+
+        //Modificar una direccion de un empleado: retorna 0 = error de ejecucion,
+        //-1 = no existe la direccion, o el codigo de la direccion modificada
+        public int ModificarDireccion(TblDireccionEmpleado dir)
+        {
+            try
+            {
+                var rgro = ctx.TblDireccionEmpleados.FirstOrDefault(x => x.IdDireccionEmpleado == dir.IdDireccionEmpleado && x.EmpleadoIdEmpleado == dir.EmpleadoIdEmpleado);
+                if (rgro == null)
+                {
+                    return -1; // Error, no existe la direccion
+                }
+                rgro.IdCiudad = dir.IdCiudad;
+                rgro.DireccionEmpleado = dir.DireccionEmpleado;
+                ctx.SaveChanges();
+                return rgro.IdDireccionEmpleado;
+            }
+            catch
+            {
+                return 0; // Error de ejecucion
+            }
+        }
+
+        //Modificar un telefono de un empleado: retorna 0 = error de ejecucion,
+        //-1 = no existe el telefono, o el codigo del telefono modificado
+        public int ModificarTelefono(TblTelefonoEmpleado tel)
+        {
+            try
+            {
+                var rgro = ctx.TblTelefonoEmpleados.FirstOrDefault(x => x.IdTelefonoEmpleado == tel.IdTelefonoEmpleado && x.EmpleadoIdEmpleado == tel.EmpleadoIdEmpleado);
+                if (rgro == null)
+                {
+                    return -1; // Error, no existe el telefono
+                }
+                rgro.IdTipoTelefono = tel.IdTipoTelefono;
+                rgro.Numero = tel.Numero;
+                ctx.SaveChanges();
+                return rgro.IdTelefonoEmpleado;
+            }
+            catch
+            {
+                return 0; // Error de ejecucion
+            }
         }
 
         //Agregar empleado con su detalle (profesiones, direcciones y telefonos)

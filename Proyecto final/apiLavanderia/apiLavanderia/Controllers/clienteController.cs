@@ -55,6 +55,38 @@ namespace apiLavanderia.Controllers
             }
         }
 
+        //Servicio para agregar una direccion a un cliente
+        [HttpPost("agregarDireccion")]
+        public int AgregarDireccion([FromBody] TblDireccionCliente dir)
+        {
+            clsOpeCliente oX = new clsOpeCliente(ctx);
+            return oX.AgregarDireccion(dir);
+        }
+
+        //Servicio para agregar un telefono a un cliente
+        [HttpPost("agregarTelefono")]
+        public int AgregarTelefono([FromBody] TblTelefonoCliente tel)
+        {
+            clsOpeCliente oX = new clsOpeCliente(ctx);
+            return oX.AgregarTelefono(tel);
+        }
+
+        //Servicio para modificar una direccion de un cliente
+        [HttpPut("modificarDireccion")]
+        public int ModificarDireccion([FromBody] TblDireccionCliente dir)
+        {
+            clsOpeCliente oX = new clsOpeCliente(ctx);
+            return oX.ModificarDireccion(dir);
+        }
+
+        //Servicio para modificar un telefono de un cliente
+        [HttpPut("modificarTelefono")]
+        public int ModificarTelefono([FromBody] TblTelefonoCliente tel)
+        {
+            clsOpeCliente oX = new clsOpeCliente(ctx);
+            return oX.ModificarTelefono(tel);
+        }
+
         //Servicio para agregar un cliente con su detalle
         [HttpPost]
         public int Post([FromBody] clsClienteIn datIn)
