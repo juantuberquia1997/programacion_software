@@ -1,5 +1,6 @@
 using apiLavanderia.Models;
 
+
 namespace apiLavanderia.clases
 {
     public class clsOpeCiudad
