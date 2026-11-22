@@ -35,16 +35,18 @@ namespace apiLavanderia.clases
         {
             return from IE in ctx.Set<TblEmpleado>()
                    join ITD in ctx.Set<TblTipoDocumento>() on IE.IdTipoDocumento equals ITD.IdTipoDocumento
+                   join IEE in ctx.Set<TblEmpleado>() on IE.EmpleadoIdEmpleado equals IEE.IdEmpleado
                    where IE.DocumentoEmpleado == documento
-                   select new {
-                       codigo     = IE.IdEmpleado,
-                       nombre     = IE.NombreApellidoEmp,
-                       idTD       = IE.IdTipoDocumento,
-                       tipoDoc    = ITD.NombreDocumento,
-                       documento  = IE.DocumentoEmpleado,
-                       fechaIng   = IE.FechaIngreso,
-                       salario    = IE.Salario,
-                       act        = IE.Activo
+                   select new
+                   {
+                       codigo = IE.IdEmpleado,
+                       empleado = IEE.IdEmpleado,
+                       nombre = IE.NombreApellidoEmp,
+                       idTD = IE.IdTipoDocumento,
+                       documento = IE.DocumentoEmpleado,
+                       fechaIng = IE.FechaIngreso,
+                       salario = IE.Salario,
+                       act = IE.Activo
                    };
         }
 

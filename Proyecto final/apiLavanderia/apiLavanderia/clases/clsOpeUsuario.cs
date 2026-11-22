@@ -48,6 +48,7 @@ namespace apiLavanderia.clases
                        codigo   = IU.IdUsuarios,
                        idEmp    = IU.EmpleadoIdEmpleado,
                        empleado = IE.NombreApellidoEmp,
+                       clave = IU.Clave,
                        usuario  = IU.Usuario,
                        act      = IU.Activo
                    };
