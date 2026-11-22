@@ -13,7 +13,5 @@ public partial class TblCliente
 
     public string NombreApellidoCliente { get; set; } = null!;
 
-    public string Documento { get; set; } = null!;
-
-    public long NumeroDocumento { get; set; }
+    public string NumeroDocumento { get; set; } = null!;
 }

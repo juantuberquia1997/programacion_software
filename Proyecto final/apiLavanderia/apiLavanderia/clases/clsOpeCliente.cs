@@ -32,13 +32,13 @@ namespace apiLavanderia.clases
         {
             return from IC in ctx.Set<TblCliente>()
                    join ITD in ctx.Set<TblTipoDocumento>() on IC.IdTipoDocumento equals ITD.IdTipoDocumento
-                   where IC.Documento == documento
+                   where IC.NumeroDocumento == documento
                    select new {
                        codigo   = IC.IdCliente,
                        nombre   = IC.NombreApellidoCliente,
                        idTD     = IC.IdTipoDocumento,
                        tipoDoc  = ITD.NombreDocumento,
-                       documento = IC.Documento
+                       documento = IC.NumeroDocumento
                    };
         }
 
@@ -53,7 +53,7 @@ namespace apiLavanderia.clases
                        codigo   = IC.IdCliente,
                        nombre   = IC.NombreApellidoCliente,
                        tipoDoc  = ITD.NombreDocumento,
-                       documento = IC.Documento
+                       documento = IC.NumeroDocumento
                    }; // Los 5 <th></th> para la tabla
         }
 
@@ -96,7 +96,7 @@ namespace apiLavanderia.clases
             {
                 TblCliente tblCliente = datIn.tblCliente;
                 // Validar si existe
-                var existe = ctx.TblClientes.FirstOrDefault(x => x.Documento == tblCliente.Documento);
+                var existe = ctx.TblClientes.FirstOrDefault(x => x.NumeroDocumento == tblCliente.NumeroDocumento);
                 if (existe != null)
                 {
                     return -1; // Ya existe
@@ -155,7 +155,6 @@ namespace apiLavanderia.clases
                 rgro.EmpleadoIdEmpleado = tblCliente.EmpleadoIdEmpleado;
                 rgro.IdTipoDocumento = tblCliente.IdTipoDocumento;
                 rgro.NombreApellidoCliente = tblCliente.NombreApellidoCliente;
-                rgro.Documento = tblCliente.Documento;
                 rgro.NumeroDocumento = tblCliente.NumeroDocumento;
                 // Actualizar direcciones: no se eliminan, se actualizan o adicionan
                 int maxDir = ctx.TblDireccionClientes.Any() ? ctx.TblDireccionClientes.Max(x => x.IdDireccion) : 0;

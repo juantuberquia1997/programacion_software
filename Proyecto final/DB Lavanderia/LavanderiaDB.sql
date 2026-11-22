@@ -56,7 +56,8 @@ go
 
 create table tipo_prenda (
     idtipo_prenda integer primary key,
-    nombre_prenda varchar(100) not null
+    nombre_prenda varchar(100) not null,
+    activo bit not null
 );
 go
 
@@ -140,8 +141,7 @@ create table cliente (
     empleado_idempleado integer not null,
     idtipo_documento integer not null,
     nombre_apellido_cliente varchar(150) not null,
-    documento varchar(50) not null,
-    numero_documento bigint not null,
+    numero_documento varchar(50) not null,
     foreign key (empleado_idempleado) references empleado(idempleado),
     foreign key (idtipo_documento) references tipo_documento(idtipo_documento)
 );
@@ -242,11 +242,11 @@ insert into tipo_telefono (idtipo_telefono, tipo_telefono) values
 go
 
 insert into estado_prenda (idestado_prenda, estado_prenda) values
-(1, 'recibida'),
-(2, 'en lavado'),
-(3, 'en planchado'),
-(4, 'lista para entrega'),
-(5, 'entregada');
+(1, 'buen estado'),
+(2, 'tiene un rasguño'),
+(3, 'esta descolorida'),
+(4, 'tiene una mancha'),
+(5, 'tiene un roto');
 go
 
 insert into tipo_servicio (idtipo_servicio, nombre_servicio, valor, activo) values
@@ -257,12 +257,12 @@ insert into tipo_servicio (idtipo_servicio, nombre_servicio, valor, activo) valu
 (5, 'ajuste y costura', 15000, 1);
 go
 
-insert into tipo_prenda (idtipo_prenda, nombre_prenda) values
-(1, 'traje completo'),
-(2, 'camisa'),
-(3, 'pantalon'),
-(4, 'vestido'),
-(5, 'abrigo');
+insert into tipo_prenda (idtipo_prenda, nombre_prenda, activo) values
+(1, 'traje completo', 1),
+(2, 'camisa', 1),
+(3, 'pantalon', 1),
+(4, 'vestido', 1),
+(5, 'abrigo', 1);
 go
 
 insert into tipo_prenda_servicio (idtipo_prenda_servicio, idtipo_servicio, idtipo_prenda, valor_unitario, activo) values
@@ -321,12 +321,12 @@ insert into telefono_empleado_2 (idtelefono_empleado_2, idtipo_telefono, emplead
 (5, 2, 5, '6044556677');
 go
 
-insert into cliente (idcliente, empleado_idempleado, idtipo_documento, nombre_apellido_cliente, documento, numero_documento) values
-(1, 2, 1, 'andrea paola zapata', '1036601001', 1036601001),
-(2, 2, 1, 'daniel felipe cardona', '1036601002', 1036601002),
-(3, 3, 1, 'natalia isabel bedoya', '1036601003', 1036601003),
-(4, 4, 2, 'sebastian david meza', '4006601004', 4006601004),
-(5, 5, 1, 'maria camila lopez', '1036601005', 1036601005);
+insert into cliente (idcliente, empleado_idempleado, idtipo_documento, nombre_apellido_cliente, numero_documento) values
+(1, 2, 1, 'andrea paola zapata', '1036601001'),
+(2, 2, 1, 'daniel felipe cardona', '1036601002'),
+(3, 3, 1, 'natalia isabel bedoya', '1036601003'),
+(4, 4, 2, 'sebastian david meza', '4006601004'),
+(5, 5, 1, 'maria camila lopez', '1036601005');
 go
 
 insert into direccion_cliente (iddireccion, idciudad, idcliente, direccion_cliente) values
@@ -334,7 +334,8 @@ insert into direccion_cliente (iddireccion, idciudad, idcliente, direccion_clien
 (2, 1, 2, 'calle 10 # 38-25'),
 (3, 2, 3, 'carrera 50 # 48-19'),
 (4, 1, 4, 'circular 4 # 73-10'),
-(5, 2, 5, 'calle 46 # 54-09');
+(5, 2, 5, 'calle 46 # 54-09'),
+(6, 2, 1, 'calle 80 # 50-12');
 go
 
 insert into telefono_cliente (idtelefono, idtipo_telefono, idcliente, numero) values
@@ -361,4 +362,4 @@ insert into detalle_ingreso (iddetalle_ingreso, iddescuento, idtipo_prenda_servi
 (5, 5, 5, 5, 5, 5, 1, 24700.00, 'abrigo entregado conforme');
 go
 
-select * from detalle_ingreso
+select * from tipo_prenda
