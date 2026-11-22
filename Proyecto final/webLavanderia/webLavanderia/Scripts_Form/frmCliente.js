@@ -1,4 +1,5 @@
-﻿var dir = "http://localhost:XXXXX/api/";
+﻿var dir = "http://localhost:5124/api/";
+var oTabla = $("#tblDatos").DataTable();
 
 jQuery(function () {
     //Carga el menú
@@ -6,29 +7,34 @@ jQuery(function () {
 
     //Registrar los botones para responder al evento click
     $("#btnAgre").on("click", function () {
-        alerta("Agregar", "En futura construcción");
-        //Agregar();
+        alerta("Agregar", "Agregando");
+        $("#txtCodigo").val("0");
+        ejecutarComando("POST")
     });
     $("#btnModi").on("click", function () {
-        alerta("Modificar", "En futura construcción");
-        //Modificar();
+        alerta("Modificar", "Modificando");
+        let cod = $("#txtCodigo").val();
+        if (isNaN(cod) || parseInt(cod, 10) <= 0 || cod.trim() == "") {
+            alerta("Error, procedimiento no válido.", "Error, buscar primero un artista");
+            return;
+        }
+        ejecutarComando("PUT")
     });
     $("#btnBusc").on("click", function () {
-        alerta("Buscar", "En futura construcción");
-        //Consultar();
+        alerta("Buscar", "Buscando");
+        Consultar();
     });
     $("#btnCanc").on("click", function () {
-        alerta("Cancelar", "En futura construcción");
-        //Cancelar();
+        alerta("Cancelar", "Cancelando");
+        Cancelar();
     });
     $("#btnImpr").on("click", function () {
-        alerta("Impresión", "En futura construcción");
+        alerta("Imprimir", "En futura construcción");
         //Imprimir();
     });
 
-
+    inicializarCliente()
 });  //Del: jQuery
-
 
 function alerta(msj, titulo) {  // Instalar en scripts_form/Comunes: sweetalert2.all.min.js y
     Swal.fire({                   //                                   sweetalert2.min.css
@@ -39,38 +45,128 @@ function alerta(msj, titulo) {  // Instalar en scripts_form/Comunes: sweetalert2
     });
 }
 
+function validar(name, nroDoc) {
+    var msj = "Falta ";
+    if (name.trim() == "") {
+        msj = msj + "El nombre no válido,\n"
+    }
+    if (isNaN(nroDoc) || parseFloat(nroDoc, 10) <= 0 || nroDoc.trim() == "") {
+        msj = msj + "el nro. de documento no es válido,\n"
+    }
+    if (msj != "Falta ") {
+        alerta(msj, "Error en procedimiento");
+        return false;
+    }
 
+    return true;
+}
+
+async function inicializarCliente() {
+    await llenarComboEmpleado();
+    await llenarComboTipoDoc();
+    await llenarTabla();
+}
+
+function seleccionarComboPorTexto(selectorCombo, texto) {
+    if (!texto) return;
+    const objetivo = texto.toString().trim().toLowerCase();
+    $(`${selectorCombo} option`).each(function () {
+        if ($(this).text().trim().toLowerCase() === objetivo) {
+            $(selectorCombo).val($(this).val());
+            return false;
+        }
+    });
+}
+
+function registrarEventoIrCliente() {
+    $("#tblDatos tbody").off("click", ".btn-ir").on("click", ".btn-ir", function (evento) {
+        evento.preventDefault();
+        evento.stopPropagation();
+
+        const fila = $(this).closest("tr");
+        $("#tblDatos tbody tr.selected").removeClass("selected");
+        fila.addClass("selected");
+
+        const datosFila = $("#tblDatos").DataTable().row(fila).data();
+        if (!datosFila) return;
+
+        $("#txtCodigo").val(datosFila.codigo ?? "");
+        $("#txtNombre").val(datosFila.nombre ?? "");
+        $("#txtNroDoc").val(datosFila.documento ?? "");
+        seleccionarComboPorTexto("#cboTipoDoc", datosFila.tipoDocumento);
+    });
+}
+
+async function llenarComboTipoDoc() {
+    let url = dir + "tipoDocumento/listadoTipoDocumentos";
+    let rpta = await llenarComboGral(url, "#cboTipoDoc", "idTipoDocumento", "nombreDocumento");
+
+    if (rpta != "Termino") {
+        alerta("Error llenando combo de tipo de documento!", "Error en procedimiento");
+        return;
+    }
+}
+
+async function llenarComboEmpleado() {
+    let url = dir + "empleado/listadoEmpleados";
+    let rpta = await llenarComboGral(url, "#cboEmpleado", "idEmpleado", "nombreApellidoEmp");
+
+    if (rpta != "Termino") {
+        alerta("Error llenando combo de empleados!", "Error en procedimiento");
+        return;
+    }
+}
 
 async function ejecutarComando(accion) {
     //Capturar los datos de entrada
-    let _vr1 = $("#txt_vr1").val();
-    let _vr2 = $("#cbo_vr2").val();
-    let _vr3 = $("#txt_vr3").val();
-    let _vr4 = $("#chk_vr4").prop("checked");
+    let Codi = $("#txtCodigo").val();
+    let Empl = $("#cboEmpleado").val();
+    let Nomb = $("#txtNombre").val();
+    let idTD = $("#cboTipoDoc").val();
+    let nroD = $("#txtNroDoc").val();
 
-    alert("vr1: " + _vr1 + "..." + ", vr2: " + _vr2 + "..." + ", vr3: " + _vr3 + "..." + ", vr4: " + _vr4);
-
-    if (_vr1 == undefined || _vr1.trim() == "" || parseInt(_vr1, 10) < 0) {
-        alerta("xxx no válido", "Error");
-        $("#txtCarnet").trigger("focus");
+    if (!validar(Nomb, nroD)) {
+        $("#txtNombre").trigger("focus");
         return;
     }
-    if (parseInt(_vr2, 10) <= 0) {
-        alerta("xxx no válido", "Error");
-        $("#cboPrograma").trigger("focus");
+    //Confirmar procedimiento
+    let rpta = "";
+    if (accion === "POST") {
+        rpta = window.confirm('Estas seguro de agregar datos de: ' + Nomb + ', con bro. Doc.: ' + nroD + '?');
+        if (rpta == false) {
+            alerta('Cancelada acción de gregar', "Información");
+            return;
+        }
+    }
+    else if (accion === "PUT") {
+        if (isNaN(Codi) || parseFloat(Codi, 10) <= 0 || Codi.trim() == "") {
+            alerta("Código no válido para modificar registro", "Alerta");
+            return;
+        }
+        rpta = window.confirm('Estas seguro de modificar datos de: ' + Nomb + ', con bro. Doc.: ' + nroD + '?');
+        if (rpta == false) {
+            alerta('Cancelada acción de modificar', "Información");
+            return;
+        }
+    }
+    else {
+        alerta("Procedimiento no válido", "Alerta");
         return;
     }
 
     //Crear Json 
     let datosOut = {
-        campo1: _vr1,
-        campo2: _vr2,
-        campo3: _vr3,
-        campo4: _vr4
+        tblCliente: {
+            idCliente: Codi && Codi.trim() !== "" ? parseInt(Codi, 10) : 0,
+            empleadoIdEmpleado: parseInt(Empl, 10),
+            idTipoDocumento: parseInt(idTD, 10),
+            nombreApellidoCliente: Nomb.trim(),
+            documento: nroD.trim()
+        }
     }
     //Invocar el servicio con fetch
     try {
-        const response = await fetch(dir + "nombre servicio", {
+        const response = await fetch(dir + "cliente", {
             method: accion,
             headers: {
                 "Content-Type": "application/json",
@@ -84,12 +180,114 @@ async function ejecutarComando(accion) {
             alerta("Error al momento del grabar, reintente por favor", "Error en grabar");
         else if (rpta > 0) {
             alerta("Registro grabado con éxito", "Proceso con éxito");
-            $("#txt_vr1").val(rpta);
-            //llenarTabla();
+            $("#txtCodigo").val(rpta);
+            await Consultar();
+            // await llenarTabla();
         }
         else
             alerta(rpta, "Error en procedimiento");
     } catch (error) {
         alerta("Error: " + error, "Error en procedimiento");
+    }
+
+}
+
+function Cancelar() {
+    $("#txtCodigo").val("0");
+    $("#cboEmpleado")[0].options[0].selected = true;
+    $("#txtNombre").val("");
+    $("#cboTipoDoc")[0].options[0].selected = true;
+    $("#txtNroDoc").val("");
+    $("#txtNombre").trigger("focus");
+}
+
+async function Consultar() {
+
+    try {
+
+        let nroDoc = $("#txtNroDoc").val();
+        Cancelar();
+
+        $("#txtNroDoc").val(nroDoc);
+
+        if (isNaN(nroDoc) || parseFloat(nroDoc, 10) <= 0 || nroDoc.trim() == "") {
+            alerta("Error, el nro. del documento no es válido", "Error en procedimiento")
+            $("#txtNroDoc").trigger("focus");
+            return;
+        }
+        let url = dir + "cliente/consultaCliente?comando=1&dato=" + nroDoc
+
+        const datosOut = await fetch(url, {
+            method: "GET",
+            mode: "cors", url,
+            headers: {
+                "content-type": "application/json",
+            }
+        });
+
+        const datosin = await datosOut.json();
+
+        if (datosin == "") {
+            alerta("No se encontró artista con nro. doc.: " + nroDoc, "Informacion del proceso")
+            return;
+        }
+
+        $("#txtCodigo").val(datosin[0].codigo);
+        $("#cboEmpleado").val(datosin[0].empleado);
+        $("#txtNombre").val(datosin[0].nombre);
+        $("#cboTipoDoc").val(datosin[0].idTD);
+        $("#txtNroDoc").val(datosin[0].documento);
+
+
+    } catch (error) {
+        alerta("Error: " + error, "Error en consultar");
+    }
+}
+
+async function llenarTabla() {
+    const url = dir + "cliente/consultaCliente?comando=2&dato=0";
+
+    try {
+        const respuesta = await fetch(url, {
+            method: "GET",
+            mode: "cors",
+            headers: {
+                "content-type": "application/json"
+            }
+        });
+
+        const datos = await respuesta.json();
+
+        const filasFormateadas = Array.isArray(datos)
+            ? datos.map(item => ({
+                codigo: item.codigo,
+                nombre: item.nombre,
+                tipoDocumento: item.tipoDoc ?? "",
+                documento: item.documento
+            }))
+            : [];
+
+        $("#tblDatos").DataTable({
+            data: filasFormateadas,
+            destroy: true,
+            columns: [
+                {
+                    data: null,
+                    title: "Editar",
+                    orderable: false,
+                    searchable: false,
+                    defaultContent: '<button type="button" class="btn btn-info btn-sm btn-ir">ir</button>'
+                },
+                { data: "codigo", title: "Código" },
+                { data: "nombre", title: "Nombre" },
+                { data: "tipoDocumento", title: "Tipo Documento" },
+                { data: "documento", title: "Nro. Documento" },
+            ]
+        });
+
+        registrarEventoIrCliente();
+    } catch (error) {
+        console.error("Error en llenarTabla:", error);
+        alerta("Error en llenado de tabla", "Error en procedimiento");
     }
 }

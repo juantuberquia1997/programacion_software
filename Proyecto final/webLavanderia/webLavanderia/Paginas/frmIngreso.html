@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Maestro </title>
+    <title>Ingresos </title>
     <!-- Scripts Base Sup -->
     <!-- Google Api Font: Source Sans Pro -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
@@ -32,7 +32,7 @@
                 <div class="col-md-12">
                     <div class="card card-primary">
                         <div class="card-header">
-                            <h3 class="card-title">Maestro de </h3>
+                            <h3 class="card-title">Maestro de Ingreso</h3>
                         </div>
                         <form id="frmDatosIn">
                             <div class="card-body">
@@ -47,69 +47,135 @@
                                             <div class="col-md-2">
                                                 <div class="form-group">
                                                     <label for="txtCodigo">Código:</label>
-                                                    <input type="text" class="form-control" id="txtCodigo" width="15" placeholder="Ingrese Código...">
-                                                </div>
-                                            </div>
-                                            <div class="col-md-3">
-                                                <div class="form-group">
-                                                    <label for="cboClie">Cliente:</label>
-                                                    <select id="cboClie" class="form-control">
-                                                    </select>
-                                                </div>
-                                            </div>
-                                            <div class="col-md-1">
-                                                <div class="form-group">
-                                                    <label for="chkDomicilio">Domicilio:</label>
-                                                    <input type="checkbox" class="form-control" id="chkDomicilio" placeholder="CHECKBOX">
+                                                    <input type="text" class="form-control label_1" id="txtCodigo" disabled>
                                                 </div>
                                             </div>
                                             <div class="col-md-4">
                                                 <div class="form-group">
-                                                    <label for="cboDomicilio">Dirección Domicilio:</label>
-                                                    <select id="cboDomicilio" class="form-control">
+                                                    <label for="cboCliente">Cliente:</label>
+                                                    <select id="cboCliente" class="form-control select2" style="width: 100%;">
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="form-group">
+                                                    <label for="cboEmpleado">Empleado:</label>
+                                                    <select id="cboEmpleado" class="form-control select2" style="width: 100%;">
                                                     </select>
                                                 </div>
                                             </div>
                                             <div class="col-md-2">
                                                 <div class="form-group">
-                                                    <label for="lblFechaInsc">Fecha Inscrip:</label>
-                                                    <input type="text" class="form-control" id="lblFechaInsc" width="15" disabled>
+                                                    <label for="txtFechaIngreso">Fecha de Ingreso:</label>
+                                                    <input type="date" class="form-control" id="txtFechaIngreso" disabled>
                                                 </div>
                                             </div>
                                         </div>
+
                                         <!-- 2do. row -->
                                         <div class="row">
-                                            <div class="col-md-2">
+                                            <div class="col-md-1">
                                                 <div class="form-group">
-                                                    <label for="cboPrenda">Prenda:</label>
-                                                    <select id="cboPrenda" class="form-control">
+                                                    <label for="chkDomicilio">Domicilio:</label>
+                                                    <input type="checkbox" class="form-control" id="chkDomicilio">
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label for="cboDireccionCliente">Dirección Cliente:</label>
+                                                    <select id="cboDireccionCliente" class="form-control select2" style="width: 100%;">
                                                     </select>
                                                 </div>
                                             </div>
                                             <div class="col-md-4">
                                                 <div class="form-group">
-                                                    <label for="cboEmpleado">¿Quién Inscribe?:</label>
-                                                    <select id="cboEmpleado" class="form-control">
-                                                    </select>
-                                                </div>
-                                            </div>
-
-                                            <div class="col-md-2">
-                                                <div class="form-group">
-                                                    <label for="txtValorTot">Valor Total Inscrip:</label>
-                                                    <input type="text" class="label_1" id="txtValorTot" width="15" disabled placeholder="Valor de la inscripción...">
+                                                    <label for="txtValorTotal">Valor Total Ingreso:</label>
+                                                    <input type="text" class="form-control label_1" id="txtValorTotal" disabled placeholder="0.00">
                                                 </div>
                                             </div>
                                             <div class="col-md-1">
                                                 <div class="form-group">
                                                     <label for="chkActivo">Activo:</label>
-                                                    <input type="checkbox" class="form-control" id="chkActivo" placeholder="CHECKBOX">
+                                                    <input type="checkbox" class="form-control" id="chkActivo">
                                                 </div>
                                             </div>
                                         </div>
-                                        <!-- Acá para más rows para datos -->
 
-                                    </div>   <!-- Fin class="card-body"-->
+                                        <!-- 3er. row (detalle_ingreso) -->
+                                        <div class="row">
+                                            <div class="col-md-12">
+                                                <table id="tablaCapturaDetalle" class="table table-bordered table-striped">
+                                                    <thead>
+                                                        <tr>
+                                                            <td style="width: 30%;">
+                                                                <div class="form-group">
+                                                                    <label for="cboTipoPrendaServicio">Tipo Prenda / Servicio:</label>
+                                                                    <select id="cboTipoPrendaServicio" class="form-control select2" style="width: 100%;">
+                                                                    </select>
+                                                                </div>
+                                                            </td>
+                                                            <td style="width: 20%;">
+                                                                <div class="form-group">
+                                                                    <label for="cboEstadoPrenda">Estado Prenda:</label>
+                                                                    <select id="cboEstadoPrenda" class="form-control">
+                                                                    </select>
+                                                                </div>
+                                                            </td>
+                                                            <td style="width: 12%;">
+                                                                <div class="form-group">
+                                                                    <label for="txtCantidad">Cantidad:</label>
+                                                                    <input type="number" min="1" class="form-control" id="txtCantidad" value="1">
+                                                                </div>
+                                                            </td>
+                                                            <td style="width: 20%;">
+                                                                <div class="form-group">
+                                                                    <label for="txtDescuento">Descuento:</label>
+                                                                    <input type="number" class="form-control" id="txtDescuento" disabled>
+                                                                </div>
+                                                            </td>
+                                                            <td style="width: 18%;">
+                                                                <div class="form-group">
+                                                                    <label for="txtValorLinea">Valor:</label>
+                                                                    <input type="number" step="0.01" class="form-control" id="txtValorLinea" disabled placeholder="0.00">
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td colspan="5">
+                                                                <div class="form-group mb-0">
+                                                                    <label for="txtObservacion">Observación:</label>
+                                                                    <input type="text" class="form-control" id="txtObservacion" placeholder="Manchas, botones, cuidados especiales...">
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                    </thead>
+                                                </table>
+                                            </div>
+                                        </div>
+
+                                        <!-- Tabla de ítems del detalle -->
+                                        <div class="row mt-3">
+                                            <div class="col-md-12">
+                                                <h5>Detalle del Ingreso</h5>
+                                                <table id="tablaDetalleIngreso" class="table table-bordered table-striped">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>ID Detalle</th>
+                                                            <th>Tipo Prenda / Servicio</th>
+                                                            <th>Estado Prenda</th>
+                                                            <th>Descuento</th>
+                                                            <th>Cantidad</th>
+                                                            <th>Valor</th>
+                                                            <th>Observación</th>
+                                                            <th>Acción</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody id="tbodyDetalleIngreso">
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
                                     <!-- Menú de Opciones -->
                                     <div class="card-body">
 

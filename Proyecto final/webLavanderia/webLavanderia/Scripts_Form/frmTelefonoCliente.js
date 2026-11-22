@@ -1,4 +1,5 @@
-﻿var dir = "http://localhost:XXXXX/api/";
+﻿var dir = "http://localhost:5124/api/";
+var oTabla = $("#tblDatos").DataTable();
 
 jQuery(function () {
     //Carga el menú
@@ -6,23 +7,29 @@ jQuery(function () {
 
     //Registrar los botones para responder al evento click
     $("#btnAgre").on("click", function () {
-        alerta("Agregar", "En futura construcción");
-        //Agregar();
+        alerta("Agregar", "Agregando");
+        $("#txtCodigo").val("0");
+        ejecutarComando("POST")
     });
     $("#btnModi").on("click", function () {
-        alerta("Modificar", "En futura construcción");
-        //Modificar();
+        alerta("Modificar", "Modificando");
+        let cod = $("#txtCodigo").val();
+        if (isNaN(cod) || parseInt(cod, 10) <= 0 || cod.trim() == "") {
+            alerta("Error, procedimiento no válido.", "Error, buscar primero un artista");
+            return;
+        }
+        ejecutarComando("PUT")
     });
     $("#btnBusc").on("click", function () {
-        alerta("Buscar", "En futura construcción");
-        //Consultar();
+        alerta("Buscar", "Buscando");
+        Consultar();
     });
     $("#btnCanc").on("click", function () {
-        alerta("Cancelar", "En futura construcción");
-        //Cancelar();
+        alerta("Cancelar", "Cancelando");
+        Cancelar();
     });
     $("#btnImpr").on("click", function () {
-        alerta("Impresión", "En futura construcción");
+        alerta("Imprimir", "En futura construcción");
         //Imprimir();
     });
 
@@ -39,57 +46,23 @@ function alerta(msj, titulo) {  // Instalar en scripts_form/Comunes: sweetalert2
     });
 }
 
+// async function llenarComboTipoDoc() {
+//     let url = dir + "tipoDocumento/listadoTipoDocumentos";
+//     let rpta = await llenarComboGral(url, "#cboTipoTel", "idTipoDocumento", "nombreDocumento");
 
+//     if (rpta != "Termino") {
+//         alerta("Error llenando combo de tipo de documento!", "Error en procedimiento");
+//         return;
+//     }
+// }
 
-async function ejecutarComando(accion) {
-    //Capturar los datos de entrada
-    let _vr1 = $("#txt_vr1").val();
-    let _vr2 = $("#cbo_vr2").val();
-    let _vr3 = $("#txt_vr3").val();
-    let _vr4 = $("#chk_vr4").prop("checked");
+async function llenarComboClientes() {
+    let url = dir + "cliente/listadoClientes";
+    let rpta = await llenarComboGral(url, "#cboCliente", "idCliente", "nombreApellidoCliente");
 
-    alert("vr1: " + _vr1 + "..." + ", vr2: " + _vr2 + "..." + ", vr3: " + _vr3 + "..." + ", vr4: " + _vr4);
-
-    if (_vr1 == undefined || _vr1.trim() == "" || parseInt(_vr1, 10) < 0) {
-        alerta("xxx no válido", "Error");
-        $("#txtCarnet").trigger("focus");
-        return;
+    if (rpta != "Termino") {
+        alerta("Error llenando combo de cliente!", "Error en procedimiento");
+        return false;
     }
-    if (parseInt(_vr2, 10) <= 0) {
-        alerta("xxx no válido", "Error");
-        $("#cboPrograma").trigger("focus");
-        return;
-    }
-
-    //Crear Json 
-    let datosOut = {
-        campo1: _vr1,
-        campo2: _vr2,
-        campo3: _vr3,
-        campo4: _vr4
-    }
-    //Invocar el servicio con fetch
-    try {
-        const response = await fetch(dir + "nombre servicio", {
-            method: accion,
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify(datosOut),
-        });   // stringify() convierte un objeto o valor de JavaScript en una cadena de texto JSON
-        const rpta = await response.json();
-        if (rpta == -1)
-            alerta("Problema al grabar el registro (Revisar si existe)", "Error en proceso");
-        else if (rpta == 0)
-            alerta("Error al momento del grabar, reintente por favor", "Error en grabar");
-        else if (rpta > 0) {
-            alerta("Registro grabado con éxito", "Proceso con éxito");
-            $("#txt_vr1").val(rpta);
-            //llenarTabla();
-        }
-        else
-            alerta(rpta, "Error en procedimiento");
-    } catch (error) {
-        alerta("Error: " + error, "Error en procedimiento");
-    }
+    return true;
 }

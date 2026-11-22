@@ -1,4 +1,5 @@
-﻿var dir = "http://localhost:XXXXX/api/";
+﻿var dir = "http://localhost:5124/api/";
+var oTabla = $("#tblDatos").DataTable();
 
 jQuery(function () {
     //Carga el menú
@@ -6,29 +7,59 @@ jQuery(function () {
 
     //Registrar los botones para responder al evento click
     $("#btnAgre").on("click", function () {
-        alerta("Agregar", "En futura construcción");
-        //Agregar();
+        alerta("Agregar", "Agregando");
+        $("#txtCodigo").val("0");
+        ejecutarComando("POST")
     });
     $("#btnModi").on("click", function () {
-        alerta("Modificar", "En futura construcción");
-        //Modificar();
+        alerta("Modificar", "Modificando");
+        let cod = $("#txtCodigo").val();
+        if (isNaN(cod) || parseInt(cod, 10) <= 0 || cod.trim() == "") {
+            alerta("Error, procedimiento no válido.", "Error, buscar primero un artista");
+            return;
+        }
+        ejecutarComando("PUT")
     });
     $("#btnBusc").on("click", function () {
-        alerta("Buscar", "En futura construcción");
-        //Consultar();
+        alerta("Buscar", "Buscando");
+        Consultar();
     });
     $("#btnCanc").on("click", function () {
-        alerta("Cancelar", "En futura construcción");
-        //Cancelar();
+        alerta("Cancelar", "Cancelando");
+        Cancelar();
     });
     $("#btnImpr").on("click", function () {
-        alerta("Impresión", "En futura construcción");
+        alerta("Imprimir", "En futura construcción");
         //Imprimir();
     });
 
+    inicializarDepartamento()
 
 });  //Del: jQuery
 
+async function inicializarDepartamento() {
+    await llenarTabla();
+}
+
+function registrarEventoIrDepartamento() {
+    $("#tblDatos tbody").off("click", ".btn-ir").on("click", ".btn-ir", function (evento) {
+        evento.preventDefault();
+        evento.stopPropagation();
+
+        const fila = $(this).closest("tr");
+        $("#tblDatos tbody tr.selected").removeClass("selected");
+        fila.addClass("selected");
+
+        const datosFila = $("#tblDatos").DataTable().row(fila).data();
+        if (!datosFila) {
+            alerta("No se pudieron leer los datos de la fila", "Error en procedimiento");
+            return;
+        }
+
+        $("#txtCodigo").val(datosFila.codigo ?? "");
+        $("#txtNombre").val(datosFila.nombre ?? "");
+    });
+}
 
 function alerta(msj, titulo) {  // Instalar en scripts_form/Comunes: sweetalert2.all.min.js y
     Swal.fire({                   //                                   sweetalert2.min.css
@@ -39,38 +70,103 @@ function alerta(msj, titulo) {  // Instalar en scripts_form/Comunes: sweetalert2
     });
 }
 
+function validar(name) {
+    var msj = "Falta ";
+    if (name.trim() == "") {
+        msj = msj + "El nombre no válido,\n"
+    }
 
+    return true;
+}
+
+function Cancelar() {
+    $("#txtCodigo").val("0");
+    $("#txtNombre").val("");
+    $("#txtNombre").trigger("focus");
+}
+
+async function Consultar() {
+
+    try {
+
+        let nroDoc = $("#txtNombre").val();
+        Cancelar();
+
+        $("#txtNombre").val(nroDoc);
+
+        if (nroDoc.trim() == "") {
+            alerta("Error, el nombre no es válido", "Error en procedimiento")
+            $("#txtNombre").trigger("focus");
+            return;
+        }
+        let url = dir + "departamento/consultaDepartamento?comando=1&dato=" + nroDoc
+
+        const datosOut = await fetch(url, {
+            method: "GET",
+            mode: "cors", url,
+            headers: {
+                "content-type": "application/json",
+            }
+        });
+
+        const datosin = await datosOut.json();
+
+        if (datosin == "") {
+            alerta("No se encontró telefono: " + nroDoc, "Informacion del proceso")
+            return;
+        }
+
+        $("#txtCodigo").val(datosin[0].codigo);
+        $("#txtNombre").val(datosin[0].nombre);
+
+
+    } catch (error) {
+        alerta("Error: " + error, "Error en consultar");
+    }
+}
 
 async function ejecutarComando(accion) {
     //Capturar los datos de entrada
-    let _vr1 = $("#txt_vr1").val();
-    let _vr2 = $("#cbo_vr2").val();
-    let _vr3 = $("#txt_vr3").val();
-    let _vr4 = $("#chk_vr4").prop("checked");
+    let Codi = $("#txtCodigo").val();
+    let Nomb = $("#txtNombre").val();
 
-    alert("vr1: " + _vr1 + "..." + ", vr2: " + _vr2 + "..." + ", vr3: " + _vr3 + "..." + ", vr4: " + _vr4);
-
-    if (_vr1 == undefined || _vr1.trim() == "" || parseInt(_vr1, 10) < 0) {
-        alerta("xxx no válido", "Error");
-        $("#txtCarnet").trigger("focus");
+    if (!validar(Nomb)) {
+        $("#txtNombre").trigger("focus");
         return;
     }
-    if (parseInt(_vr2, 10) <= 0) {
-        alerta("xxx no válido", "Error");
-        $("#cboPrograma").trigger("focus");
+    //Confirmar procedimiento
+    let rpta = "";
+    if (accion === "POST") {
+        rpta = window.confirm('Estas seguro de agregar datos de: ' + Nomb + ' ?');
+        if (rpta == false) {
+            alerta('Cancelada acción de gregar', "Información");
+            return;
+        }
+    }
+    else if (accion === "PUT") {
+        if (isNaN(Codi) || parseFloat(Codi, 10) <= 0 || Codi.trim() == "") {
+            alerta("Código no válido para modificar registro", "Alerta");
+            return;
+        }
+        rpta = window.confirm('Estas seguro de modificar datos de: ' + Nomb + ' ?');
+        if (rpta == false) {
+            alerta('Cancelada acción de modificar', "Información");
+            return;
+        }
+    }
+    else {
+        alerta("Procedimiento no válido", "Alerta");
         return;
     }
 
     //Crear Json 
     let datosOut = {
-        campo1: _vr1,
-        campo2: _vr2,
-        campo3: _vr3,
-        campo4: _vr4
+        IdDepartamento: accion === "POST" ? 0 : (parseInt(Codi, 10) || 0),
+        NombreDepartamento: Nomb ? Nomb.trim() : "",
     }
     //Invocar el servicio con fetch
     try {
-        const response = await fetch(dir + "nombre servicio", {
+        const response = await fetch(dir + "departamento", {
             method: accion,
             headers: {
                 "Content-Type": "application/json",
@@ -84,12 +180,70 @@ async function ejecutarComando(accion) {
             alerta("Error al momento del grabar, reintente por favor", "Error en grabar");
         else if (rpta > 0) {
             alerta("Registro grabado con éxito", "Proceso con éxito");
-            $("#txt_vr1").val(rpta);
-            //llenarTabla();
+            $("#txtCodigo").val(rpta);
+            await Consultar();
+            // await llenarTabla();
         }
         else
             alerta(rpta, "Error en procedimiento");
     } catch (error) {
         alerta("Error: " + error, "Error en procedimiento");
+    }
+
+}
+
+async function llenarTabla() {
+    const urlPrincipal = dir + "departamento/consultaDepartamento?comando=2&dato=0";
+    const urlRespaldo = dir + "departamento/listadoDepartamentos";
+
+    try {
+        let respuesta = await fetch(urlPrincipal, {
+            method: "GET",
+            mode: "cors",
+            headers: {
+                "content-type": "application/json"
+            }
+        });
+
+        let datos = respuesta.ok ? await respuesta.json() : null;
+
+        if (!Array.isArray(datos)) {
+            const respAlterna = await fetch(urlRespaldo, {
+                method: "GET",
+                mode: "cors",
+                headers: {
+                    "content-type": "application/json"
+                }
+            });
+            datos = respAlterna.ok ? await respAlterna.json() : [];
+        }
+
+        const filasFormateadas = Array.isArray(datos)
+            ? datos.map(item => ({
+                codigo: item.codigo ?? item.idDepartamento ?? "",
+                nombre: item.nombre ?? item.nombreDepartamento ?? ""
+            }))
+            : [];
+
+        $("#tblDatos").DataTable({
+            data: filasFormateadas,
+            destroy: true,
+            columns: [
+                {
+                    data: null,
+                    title: "Editar",
+                    orderable: false,
+                    searchable: false,
+                    defaultContent: '<button type="button" class="btn btn-info btn-sm btn-ir">ir</button>'
+                },
+                { data: "codigo", title: "Código" },
+                { data: "nombre", title: "Departamento" }
+            ]
+        });
+
+        registrarEventoIrDepartamento();
+    } catch (error) {
+        console.error("Error en llenarTabla:", error);
+        alerta("Error en llenado de tabla", "Error en procedimiento");
     }
 }

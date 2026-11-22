@@ -1,24 +1,43 @@
-﻿async function llenarComboGral(url, combo)
-{
+﻿// async function llenarComboGral(url, combo)
+// {
+//     try {
+//         const Respuesta = await fetch(url,
+//             {
+//                 method: "GET",
+//                 mode: "cors",
+//                 headers: { "content-type": "application/json", }
+//             }
+//         );
+//         const Rpta = await Respuesta.json();
+//         //Recorrer la respuesta en Rpta, para agregarla al combo de tipo de producto
+//         $(combo).empty();
+//         //Se recorre la respuesta
+//         for (i = 0; i < Rpta.length; i++) {
+//             $(combo).append('<option value=' + Rpta[i].codigo + '>' + Rpta[i].nombre + '</option>');
+//         }
+//         //Tener muy encuenta los nombres de los campos, deben ser iguales
+//         return "Termino";
+//     }
+//     catch (error) {
+//         return error;
+//     }
+// }
+
+async function llenarComboGral(url, combo, campoId, campoTexto) {
     try {
-        const Respuesta = await fetch(url,
-            {
-                method: "GET",
-                mode: "cors",
-                headers: { "content-type": "application/json", }
-            }
-        );
+        const Respuesta = await fetch(url, {
+            method: "GET",
+            mode: "cors",
+            headers: { "content-type": "application/json" }
+        });
         const Rpta = await Respuesta.json();
-        //Recorrer la respuesta en Rpta, para agregarla al combo de tipo de producto
+
         $(combo).empty();
-        //Se recorre la respuesta
-        for (i = 0; i < Rpta.length; i++) {
-            $(combo).append('<option value=' + Rpta[i].codigo + '>' + Rpta[i].nombre + '</option>');
+        for (let i = 0; i < Rpta.length; i++) {
+            $(combo).append('<option value="' + Rpta[i][campoId] + '">' + Rpta[i][campoTexto] + '</option>');
         }
-        //Tener muy encuenta los nombres de los campos, deben ser iguales
         return "Termino";
-    }
-    catch (error) {
+    } catch (error) {
         return error;
     }
 }

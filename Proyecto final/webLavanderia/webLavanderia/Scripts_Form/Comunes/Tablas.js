@@ -30,6 +30,7 @@
         return "Termino";
     }
     catch (error) {
+        console.log(error);
         return "Error";
     }
 }
