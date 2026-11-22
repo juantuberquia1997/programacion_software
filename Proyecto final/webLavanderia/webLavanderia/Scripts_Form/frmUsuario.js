@@ -1,4 +1,5 @@
 ﻿var dir = "http://localhost:5124/api/";
+var oTabla = $("#tblDatos").DataTable();
 
 jQuery(function () {
     //Carga el menú
@@ -32,7 +33,7 @@ jQuery(function () {
         //Imprimir();
     });
 
-    llenarComboEmpleado();
+    inicializarUsuario()
 });  //Del: jQuery
 
 
@@ -42,6 +43,40 @@ function alerta(msj, titulo) {  // Instalar en scripts_form/Comunes: sweetalert2
         type: 'info',
         title: titulo,
         text: msj
+    });
+}
+
+async function inicializarUsuario() {
+    await llenarComboEmpleado();
+    await llenarTabla();
+}
+
+function registrarEventoIrUsuario() {
+    $("#tblDatos tbody").off("click", ".btn-ir").on("click", ".btn-ir", function (evento) {
+        evento.preventDefault();
+        evento.stopPropagation();
+
+        const fila = $(this).closest("tr");
+        $("#tblDatos tbody tr.selected").removeClass("selected");
+        fila.addClass("selected");
+
+        const datosFila = $("#tblDatos").DataTable().row(fila).data();
+        if (!datosFila) {
+            alerta("No se pudieron leer los datos de la fila", "Error en procedimiento");
+            return;
+        }
+
+        $("#txtCodigo").val(datosFila.codigo ?? "");
+        $("#txtUsuario").val(datosFila.usuario ?? "");
+        $("#txtClave").val(datosFila.clave ?? "");
+
+        if (datosFila.idEmp !== undefined && datosFila.idEmp !== null && datosFila.idEmp !== "") {
+            $("#cboEmpleado").val(String(datosFila.idEmp));
+        }
+
+        if (typeof datosFila.activo === "boolean") {
+            $("#chkActivo").prop("checked", datosFila.activo);
+        }
     });
 }
 
@@ -71,7 +106,7 @@ async function ejecutarComando(accion) {
     //Confirmar procedimiento
     let rpta = "";
     if (accion === "POST") {
-        rpta = window.confirm("¿Estás seguro de agregar el usuario: " + usuario.trim() + "?");
+        rpta = window.confirm("¿Estás seguro de agregar el usuario: " + usuario + "?");
         if (!rpta) {
             alerta("Cancelada acción de agregar", "Información");
             return;
@@ -81,7 +116,7 @@ async function ejecutarComando(accion) {
             alerta("Selecciona o consulta un registro antes de modificar", "Alerta");
             return;
         }
-        rpta = window.confirm("¿Estás seguro de modificar el usuario: " + usuario.trim() + "?");
+        rpta = window.confirm("¿Estás seguro de modificar el usuario: " + usuario + "?");
         if (!rpta) {
             alerta("Cancelada acción de modificar", "Información");
             return;
@@ -115,9 +150,9 @@ async function ejecutarComando(accion) {
             alerta("Error al momento del grabar, reintente por favor", "Error en grabar");
         else if (rpta > 0) {
             alerta("Registro grabado con éxito", "Proceso con éxito");
-            $("#txtCodigo").val(rpta);
+            $("#txtUsuario").val(rpta);
             await Consultar();
-            // await llenarTabla();
+            await llenarTabla();
         }
         else
             alerta(rpta, "Error en procedimiento");
@@ -161,7 +196,7 @@ async function Consultar() {
         const datosin = await datosOut.json();
 
         if (datosin == "") {
-            alerta("No se encontró artista con nro. doc.: " + nroDoc, "Informacion del proceso")
+            alerta("No se encontró usuario ", "Informacion del proceso")
             return;
         }
 
@@ -173,5 +208,83 @@ async function Consultar() {
 
     } catch (error) {
         alerta("Error: " + error, "Error en consultar");
+    }
+}
+
+async function llenarTabla() {
+    const urlPrincipal = dir + "usuario/listadoUsuarios";
+
+    try {
+        let respuesta = await fetch(urlPrincipal, {
+            method: "GET",
+            mode: "cors",
+            headers: {
+                "content-type": "application/json"
+            }
+        });
+
+        let crudo = respuesta.ok ? await respuesta.json() : null;
+        let datos = Array.isArray(crudo)
+            ? crudo
+            : (crudo?.data ?? crudo?.datos ?? crudo?.resultado ?? null);
+
+        if (!Array.isArray(datos)) {
+            const respAlterna = await fetch(urlRespaldo, {
+                method: "GET",
+                mode: "cors",
+                headers: {
+                    "content-type": "application/json"
+                }
+            });
+            const crudoAlt = respAlterna.ok ? await respAlterna.json() : [];
+            datos = Array.isArray(crudoAlt)
+                ? crudoAlt
+                : (crudoAlt?.data ?? crudoAlt?.datos ?? crudoAlt?.resultado ?? []);
+        }
+
+        const filasFormateadas = Array.isArray(datos)
+            ? datos.map(item => {
+                const idEmp = item.idEmp ?? item.empleadoIdEmpleado ?? item.idEmpleado ?? "";
+                const opcionEmp = $(`#cboEmpleado option[value="${idEmp}"]`);
+                const nombreEmp = opcionEmp.length > 0
+                    ? opcionEmp.text().trim()
+                    : (item.nombreEmpleado ?? item.nombreApellidoEmp ?? idEmp);
+
+                const estadoActivo = Boolean(item.act ?? item.activo ?? true);
+
+                return {
+                    codigo: item.codigo ?? item.idUsuarios ?? item.idUsuario ?? "",
+                    usuario: item.usuario ?? item.Usuario ?? "",
+                    clave: item.clave ?? item.Clave ?? "",
+                    idEmp: idEmp,
+                    empleado: nombreEmp,
+                    activo: estadoActivo,
+                    estadoTexto: estadoActivo ? "Activo" : "Inactivo"
+                };
+            })
+            : [];
+
+        $("#tblDatos").DataTable({
+            data: filasFormateadas,
+            destroy: true,
+            columns: [
+                {
+                    data: null,
+                    title: "Editar",
+                    orderable: false,
+                    searchable: false,
+                    defaultContent: '<button type="button" class="btn btn-info btn-sm btn-ir">ir</button>'
+                },
+                { data: "codigo", title: "Código" },
+                { data: "usuario", title: "Usuario" },
+                { data: "empleado", title: "Empleado" },
+                { data: "estadoTexto", title: "Estado" }
+            ]
+        });
+
+        registrarEventoIrUsuario();
+    } catch (error) {
+        console.error("Error en llenarTabla:", error);
+        alerta("Error en llenado de tabla", "Error en procedimiento");
     }
 }

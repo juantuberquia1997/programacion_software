@@ -1,4 +1,5 @@
 ﻿var dir = "http://localhost:5124/api/";
+var oTabla = $("#tblDatos").DataTable();
 
 jQuery(function () {
     //Carga el menú
@@ -182,9 +183,9 @@ async function ejecutarComando(accion) {
             alerta("Error al momento del grabar, reintente por favor", "Error en grabar");
         else if (rpta > 0) {
             alerta("Registro grabado con éxito", "Proceso con éxito");
-            $("#txtCodigo").val(rpta);
+            $("#txtTipTele").val(rpta);
             await Consultar();
-            // await llenarTabla();
+            await llenarTabla();
         }
         else
             alerta(rpta, "Error en procedimiento");

@@ -80,7 +80,10 @@ function validar(name) {
     if (name.trim() == "") {
         msj = msj + "El nombre no válido,\n"
     }
-
+    if (msj != "Falta ") {
+        alerta(msj, "Error en procedimiento");
+        return false;
+    }
     return true;
 }
 
@@ -189,9 +192,9 @@ async function ejecutarComando(accion) {
             alerta("Error al momento del grabar, reintente por favor", "Error en grabar");
         else if (rpta > 0) {
             alerta("Registro grabado con éxito", "Proceso con éxito");
-            $("#txtCodigo").val(rpta);
+            $("#txtTipoPren").val(rpta);
             await Consultar();
-            // await llenarTabla();
+            await llenarTabla();
         }
         else
             alerta(rpta, "Error en procedimiento");

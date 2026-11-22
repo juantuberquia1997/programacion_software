@@ -219,9 +219,9 @@ async function ejecutarComando(accion) {
             alerta("Error al momento del grabar, reintente por favor", "Error en grabar");
         else if (rpta > 0) {
             alerta("Registro grabado con éxito", "Proceso con éxito");
-            $("#txtCodigo").val(rpta);
+            $("#txtNroDoc").val(rpta);
             await Consultar();
-            // await llenarTabla();
+            await llenarTabla();
         }
         else
             alerta(rpta, "Error en procedimiento");

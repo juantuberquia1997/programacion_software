@@ -30,6 +30,7 @@ namespace apiLavanderia.clases
         //iqueryable: consultar un cliente por su numero de documento
         public IQueryable clienteXDocumento(string documento)
         {
+
             return from IC in ctx.Set<TblCliente>()
                    join ITD in ctx.Set<TblTipoDocumento>() on IC.IdTipoDocumento equals ITD.IdTipoDocumento
                    join IE in ctx.Set<TblEmpleado>() on IC.EmpleadoIdEmpleado equals IE.IdEmpleado
@@ -40,7 +41,8 @@ namespace apiLavanderia.clases
                        nombre   = IC.NombreApellidoCliente,
                        idTD     = IC.IdTipoDocumento,
                        tipoDoc  = ITD.NombreDocumento,
-                       documento = IC.NumeroDocumento
+                       documento = IC.NumeroDocumento,
+
                    };
         }
 
@@ -70,6 +72,7 @@ namespace apiLavanderia.clases
                         idDir     = DC.IdDireccion,
                         idCiudad  = DC.IdCiudad,
                         ciudad    = IC.NombreCiudad,
+                        ciente = DC.IdCliente,
                         idDepart  = IC.IdDepartamento,
                         direccion = DC.DireccionCliente
                     };

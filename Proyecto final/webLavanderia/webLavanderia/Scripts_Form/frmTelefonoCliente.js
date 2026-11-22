@@ -46,16 +46,6 @@ function alerta(msj, titulo) {  // Instalar en scripts_form/Comunes: sweetalert2
     });
 }
 
-// async function llenarComboTipoDoc() {
-//     let url = dir + "tipoDocumento/listadoTipoDocumentos";
-//     let rpta = await llenarComboGral(url, "#cboTipoTel", "idTipoDocumento", "nombreDocumento");
-
-//     if (rpta != "Termino") {
-//         alerta("Error llenando combo de tipo de documento!", "Error en procedimiento");
-//         return;
-//     }
-// }
-
 async function llenarComboClientes() {
     let url = dir + "cliente/listadoClientes";
     let rpta = await llenarComboGral(url, "#cboCliente", "idCliente", "nombreApellidoCliente");

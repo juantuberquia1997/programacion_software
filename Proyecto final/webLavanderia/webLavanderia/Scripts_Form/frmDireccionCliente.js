@@ -1,16 +1,5 @@
 ﻿var dir = "http://localhost:5124/api/";
-var oTabla = $("#tblDatos").DataTable({
-    columnDefs: [
-        {
-            targets: 0,
-            data: null,
-            title: "editar",
-            orderable: false,
-            searchable: false,
-            defaultContent: '<button type="button" class="btn btn-info btn-sm btn-ir">ir</button>'
-        }
-    ]
-});
+var oTabla = $("#tblDatos").DataTable();
 
 jQuery(function () {
     //Carga el menú
@@ -46,29 +35,6 @@ jQuery(function () {
 
     inicializarFormulario()
 
-    $("#tblDatos tbody").on("click", ".btn-ir", async function (evento) {
-        evento.preventDefault();
-        evento.stopPropagation();
-
-        const fila = $(this).closest("tr");
-        $("#tblDatos tbody tr.selected").removeClass("selected");
-        fila.addClass("selected");
-
-        const datosFila = $("#tblDatos").DataTable().row(fila).data();
-        if (!datosFila) return;
-
-        $("#txtCodDirec").val(datosFila.idDir);
-        $("#txtDirec").val(datosFila["Direccion/complemento"]);
-
-        if (datosFila._idCliente != undefined) {
-            $("#cboCliente").val(datosFila._idCliente)
-        }
-
-        if (datosFila._idDepart != undefined) {
-            $("#cboDepart").val(datosFila._idDepart);
-            await llenarCombosCiudad(datosFila._idCiudad);
-        }
-    });
 });  //Del: jQuery
 
 async function inicializarFormulario() {

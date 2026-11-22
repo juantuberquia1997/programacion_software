@@ -85,6 +85,7 @@ namespace apiLavanderia.clases
         {
             return from DE in ctx.Set<TblDireccionEmpleado>()
                    join IC in ctx.Set<TblCiudad>() on DE.IdCiudad equals IC.IdCiudad
+                   join EM in ctx.Set<TblEmpleado>() on idEmpleado equals EM.IdEmpleado
                    where DE.EmpleadoIdEmpleado == idEmpleado
                    orderby DE.IdDireccionEmpleado
                     select new {
@@ -92,6 +93,7 @@ namespace apiLavanderia.clases
                         idCiudad  = DE.IdCiudad,
                         ciudad    = IC.NombreCiudad,
                         idDepart  = IC.IdDepartamento,
+                        empleado  = EM.IdEmpleado,
                         direccion = DE.DireccionEmpleado
                     };
         }

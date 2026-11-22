@@ -2,44 +2,42 @@
 var oTabla = $("#tblDatos").DataTable();
 
 jQuery(function () {
-    //Carga el menú
     $("#dvMenu").load("../Paginas/Menu.html");
 
-    //Registrar los botones para responder al evento click
     $("#btnAgre").on("click", function () {
-        alerta("Agregar", "Agregando");
         $("#txtCodigo").val("0");
-        ejecutarComando("POST")
+        ejecutarComando("POST");
     });
+
     $("#btnModi").on("click", function () {
-        alerta("Modificar", "Modificando");
         let cod = $("#txtCodigo").val();
-        if (isNaN(cod) || parseInt(cod, 10) <= 0 || cod.trim() == "") {
-            alerta("Error, procedimiento no válido.", "Error, buscar primero un artista");
+        if (isNaN(cod) || parseInt(cod, 10) <= 0 || cod.trim() === "") {
+            alerta("Error, procedimiento no válido.", "Error, buscar primero un cliente");
             return;
         }
-        ejecutarComando("PUT")
+        ejecutarComando("PUT");
     });
+
     $("#btnBusc").on("click", function () {
-        alerta("Buscar", "Buscando");
         Consultar();
     });
+
     $("#btnCanc").on("click", function () {
-        alerta("Cancelar", "Cancelando");
         Cancelar();
     });
+
     $("#btnImpr").on("click", function () {
         alerta("Imprimir", "En futura construcción");
-        //Imprimir();
     });
 
-    inicializarCliente()
-});  //Del: jQuery
+    inicializarCliente();
+});
 
-function alerta(msj, titulo) {  // Instalar en scripts_form/Comunes: sweetalert2.all.min.js y
-    Swal.fire({                   //                                   sweetalert2.min.css
-        position: 'center',
-        type: 'info',
+function alerta(msj, titulo) {
+    // SweetAlert2 versión local usa "type" en lugar de "icon"
+    Swal.fire({
+        position: "center",
+        icon: "info",
         title: titulo,
         text: msj
     });
@@ -47,17 +45,16 @@ function alerta(msj, titulo) {  // Instalar en scripts_form/Comunes: sweetalert2
 
 function validar(name, nroDoc) {
     var msj = "Falta ";
-    if (name.trim() == "") {
-        msj = msj + "El nombre no válido,\n"
+    if (!name || name.trim() === "") {
+        msj = msj + "El nombre no válido,\n";
     }
-    if (isNaN(nroDoc) || parseFloat(nroDoc, 10) <= 0 || nroDoc.trim() == "") {
-        msj = msj + "el nro. de documento no es válido,\n"
+    if (!nroDoc || isNaN(nroDoc) || parseFloat(nroDoc, 10) <= 0 || nroDoc.trim() === "") {
+        msj = msj + "el nro. de documento no es válido,\n";
     }
-    if (msj != "Falta ") {
+    if (msj !== "Falta ") {
         alerta(msj, "Error en procedimiento");
         return false;
     }
-
     return true;
 }
 
@@ -72,7 +69,7 @@ function seleccionarComboPorTexto(selectorCombo, texto) {
     const objetivo = texto.toString().trim().toLowerCase();
     $(`${selectorCombo} option`).each(function () {
         if ($(this).text().trim().toLowerCase() === objetivo) {
-            $(selectorCombo).val($(this).val());
+            $(selectorCombo).val($(this).val()).trigger("change");
             return false;
         }
     });
@@ -101,9 +98,8 @@ async function llenarComboTipoDoc() {
     let url = dir + "tipoDocumento/listadoTipoDocumentos";
     let rpta = await llenarComboGral(url, "#cboTipoDoc", "idTipoDocumento", "nombreDocumento");
 
-    if (rpta != "Termino") {
+    if (rpta !== "Termino") {
         alerta("Error llenando combo de tipo de documento!", "Error en procedimiento");
-        return;
     }
 }
 
@@ -111,14 +107,12 @@ async function llenarComboEmpleado() {
     let url = dir + "empleado/listadoEmpleados";
     let rpta = await llenarComboGral(url, "#cboEmpleado", "idEmpleado", "nombreApellidoEmp");
 
-    if (rpta != "Termino") {
+    if (rpta !== "Termino") {
         alerta("Error llenando combo de empleados!", "Error en procedimiento");
-        return;
     }
 }
 
 async function ejecutarComando(accion) {
-    //Capturar los datos de entrada
     let Codi = $("#txtCodigo").val();
     let Empl = $("#cboEmpleado").val();
     let Nomb = $("#txtNombre").val();
@@ -129,106 +123,109 @@ async function ejecutarComando(accion) {
         $("#txtNombre").trigger("focus");
         return;
     }
-    //Confirmar procedimiento
-    let rpta = "";
+
+    let rpta = false;
     if (accion === "POST") {
-        rpta = window.confirm('Estas seguro de agregar datos de: ' + Nomb + ', con bro. Doc.: ' + nroD + '?');
-        if (rpta == false) {
-            alerta('Cancelada acción de gregar', "Información");
+        rpta = window.confirm("¿Estás seguro de agregar datos de: " + Nomb + ", con Nro. Doc.: " + nroD + "?");
+        if (!rpta) {
+            alerta("Cancelada acción de agregar", "Información");
             return;
         }
-    }
-    else if (accion === "PUT") {
-        if (isNaN(Codi) || parseFloat(Codi, 10) <= 0 || Codi.trim() == "") {
+    } else if (accion === "PUT") {
+        if (isNaN(Codi) || parseFloat(Codi, 10) <= 0 || Codi.trim() === "") {
             alerta("Código no válido para modificar registro", "Alerta");
             return;
         }
-        rpta = window.confirm('Estas seguro de modificar datos de: ' + Nomb + ', con bro. Doc.: ' + nroD + '?');
-        if (rpta == false) {
-            alerta('Cancelada acción de modificar', "Información");
+        rpta = window.confirm("¿Estás seguro de modificar datos de: " + Nomb + ", con Nro. Doc.: " + nroD + "?");
+        if (!rpta) {
+            alerta("Cancelada acción de modificar", "Información");
             return;
         }
-    }
-    else {
+    } else {
         alerta("Procedimiento no válido", "Alerta");
         return;
     }
 
-    //Crear Json 
     let datosOut = {
         tblCliente: {
             idCliente: Codi && Codi.trim() !== "" ? parseInt(Codi, 10) : 0,
             empleadoIdEmpleado: parseInt(Empl, 10),
             idTipoDocumento: parseInt(idTD, 10),
             nombreApellidoCliente: Nomb.trim(),
-            documento: nroD.trim()
-        }
-    }
-    //Invocar el servicio con fetch
+            numeroDocumento: nroD.trim()
+        },
+        direcciones: [],
+        telefonos: []
+    };
+
     try {
         const response = await fetch(dir + "cliente", {
             method: accion,
+            mode: "cors",
             headers: {
-                "Content-Type": "application/json",
+                "Content-Type": "application/json"
             },
-            body: JSON.stringify(datosOut),
-        });   // stringify() convierte un objeto o valor de JavaScript en una cadena de texto JSON
-        const rpta = await response.json();
-        if (rpta == -1)
+            body: JSON.stringify(datosOut)
+        });
+
+        const resultado = await response.json();
+
+        if (resultado === -1) {
             alerta("Problema al grabar el registro (Revisar si existe)", "Error en proceso");
-        else if (rpta == 0)
-            alerta("Error al momento del grabar, reintente por favor", "Error en grabar");
-        else if (rpta > 0) {
-            alerta("Registro grabado con éxito", "Proceso con éxito");
-            $("#txtCodigo").val(rpta);
+        } else if (resultado === 0) {
+            alerta("Error al momento de grabar, reintente por favor", "Error en grabar");
+        } else if (resultado > 0) {
+            // Conserva nroD para que Consultar() busque por documento y no por el ID devuelto
+            $("#txtCodigo").val(resultado);
+            $("#txtNroDoc").val(nroD.trim());
             await Consultar();
-            // await llenarTabla();
+            await llenarTabla();
+            alerta("Registro grabado con éxito", "Proceso con éxito");
+        } else {
+            alerta(resultado, "Error en procedimiento");
         }
-        else
-            alerta(rpta, "Error en procedimiento");
     } catch (error) {
         alerta("Error: " + error, "Error en procedimiento");
     }
-
 }
 
 function Cancelar() {
     $("#txtCodigo").val("0");
-    $("#cboEmpleado")[0].options[0].selected = true;
+    if ($("#cboEmpleado")[0] && $("#cboEmpleado")[0].options.length > 0) {
+        $("#cboEmpleado")[0].options[0].selected = true;
+    }
     $("#txtNombre").val("");
-    $("#cboTipoDoc")[0].options[0].selected = true;
+    if ($("#cboTipoDoc")[0] && $("#cboTipoDoc")[0].options.length > 0) {
+        $("#cboTipoDoc")[0].options[0].selected = true;
+    }
     $("#txtNroDoc").val("");
     $("#txtNombre").trigger("focus");
 }
 
 async function Consultar() {
-
     try {
-
         let nroDoc = $("#txtNroDoc").val();
-        Cancelar();
 
-        $("#txtNroDoc").val(nroDoc);
-
-        if (isNaN(nroDoc) || parseFloat(nroDoc, 10) <= 0 || nroDoc.trim() == "") {
-            alerta("Error, el nro. del documento no es válido", "Error en procedimiento")
+        if (!nroDoc || isNaN(nroDoc) || parseFloat(nroDoc, 10) <= 0 || nroDoc.trim() === "") {
+            alerta("Error, el nro. del documento no es válido", "Error en procedimiento");
             $("#txtNroDoc").trigger("focus");
             return;
         }
-        let url = dir + "cliente/consultaCliente?comando=1&dato=" + nroDoc
 
-        const datosOut = await fetch(url, {
+        let url = dir + "cliente/consultaCliente?comando=1&dato=" + encodeURIComponent(nroDoc.trim());
+
+        const response = await fetch(url, {
             method: "GET",
-            mode: "cors", url,
+            mode: "cors",
             headers: {
-                "content-type": "application/json",
+                "Content-Type": "application/json"
             }
         });
 
-        const datosin = await datosOut.json();
+        const datosin = await response.json();
 
-        if (datosin == "") {
-            alerta("No se encontró artista con nro. doc.: " + nroDoc, "Informacion del proceso")
+        if (!Array.isArray(datosin) || datosin.length === 0) {
+            alerta("No se encontró cliente con nro. doc.: " + nroDoc.trim(), "Información del proceso");
             return;
         }
 
@@ -237,8 +234,6 @@ async function Consultar() {
         $("#txtNombre").val(datosin[0].nombre);
         $("#cboTipoDoc").val(datosin[0].idTD);
         $("#txtNroDoc").val(datosin[0].documento);
-
-
     } catch (error) {
         alerta("Error: " + error, "Error en consultar");
     }
@@ -252,7 +247,7 @@ async function llenarTabla() {
             method: "GET",
             mode: "cors",
             headers: {
-                "content-type": "application/json"
+                "Content-Type": "application/json"
             }
         });
 
@@ -267,23 +262,26 @@ async function llenarTabla() {
             }))
             : [];
 
-        $("#tblDatos").DataTable({
-            data: filasFormateadas,
-            destroy: true,
-            columns: [
-                {
-                    data: null,
-                    title: "Editar",
-                    orderable: false,
-                    searchable: false,
-                    defaultContent: '<button type="button" class="btn btn-info btn-sm btn-ir">ir</button>'
-                },
-                { data: "codigo", title: "Código" },
-                { data: "nombre", title: "Nombre" },
-                { data: "tipoDocumento", title: "Tipo Documento" },
-                { data: "documento", title: "Nro. Documento" },
-            ]
-        });
+        if ($.fn.DataTable.isDataTable("#tblDatos")) {
+            $("#tblDatos").DataTable().clear().rows.add(filasFormateadas).draw();
+        } else {
+            oTabla = $("#tblDatos").DataTable({
+                data: filasFormateadas,
+                columns: [
+                    {
+                        data: null,
+                        title: "Editar",
+                        orderable: false,
+                        searchable: false,
+                        defaultContent: '<button type="button" class="btn btn-info btn-sm btn-ir">ir</button>'
+                    },
+                    { data: "codigo", title: "Código" },
+                    { data: "nombre", title: "Nombre" },
+                    { data: "tipoDocumento", title: "Tipo Documento" },
+                    { data: "documento", title: "Nro. Documento" }
+                ]
+            });
+        }
 
         registrarEventoIrCliente();
     } catch (error) {
