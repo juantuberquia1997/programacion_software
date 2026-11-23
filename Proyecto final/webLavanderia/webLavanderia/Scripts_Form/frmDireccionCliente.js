@@ -1,4 +1,5 @@
 ﻿var dir = "http://localhost:5124/api/";
+var oTabla = null;
 
 jQuery(function () {
     //Carga el menú
@@ -6,25 +7,25 @@ jQuery(function () {
 
     //Registrar los botones para responder al evento click
     $("#btnAgre").on("click", function () {
-        alerta("Agregar", "Agregando");
-        $("#txtCodigo").val("0");
+        //alerta("Agregar", "Agregando");
+        $("#txtCodDirec").val("0");
         ejecutarComando("POST")
     });
     $("#btnModi").on("click", function () {
-        alerta("Modificar", "Modificando");
-        let cod = $("#txtCodigo").val();
+        //alerta("Modificar", "Modificando");
+        let cod = $("#txtCodDirec").val();
         if (isNaN(cod) || parseInt(cod, 10) <= 0 || cod.trim() == "") {
-            alerta("Error, procedimiento no válido.", "Error, buscar primero un artista");
+            alerta("Error, procedimiento no válido.", "Debe buscar o seleccionar primero una dirección");
             return;
         }
         ejecutarComando("PUT")
     });
     $("#btnBusc").on("click", function () {
-        alerta("Buscar", "Buscando");
+        //alerta("Buscar", "Buscando");
         Consultar();
     });
     $("#btnCanc").on("click", function () {
-        alerta("Cancelar", "Cancelando");
+        //alerta("Cancelar", "Cancelando");
         Cancelar();
     });
     $("#btnImpr").on("click", function () {
@@ -38,10 +39,8 @@ jQuery(function () {
 
 async function inicializarFormulario() {
     await llenarCombosDpto();
-    const okClientes = await llenarComboClientes();
-    if (okClientes) {
-        await llenarTabla();
-    }
+    await llenarComboClientes();
+    await llenarTabla();
 }
 
 function alerta(msj, titulo) {  // Instalar en scripts_form/Comunes: sweetalert2.all.min.js y
@@ -53,17 +52,24 @@ function alerta(msj, titulo) {  // Instalar en scripts_form/Comunes: sweetalert2
     });
 }
 
-function validar(name) {
+function validar(direccion, idDepto, idCiudad, idCliente) {
     var msj = "Falta ";
-    if (name.trim() == "") {
-        msj = msj + "El complemento no válido,\n"
+    if (!direccion || direccion.trim() === "") {
+        msj = msj + "La dirección o complemento no es válido,\n";
     }
-
-    if (msj != "Falta ") {
+    if (!idDepto || isNaN(parseInt(idDepto, 10)) || parseInt(idDepto, 10) <= 0) {
+        msj = msj + "Seleccionar un departamento válido,\n";
+    }
+    if (!idCiudad || isNaN(parseInt(idCiudad, 10)) || parseInt(idCiudad, 10) <= 0) {
+        msj = msj + "Seleccionar una ciudad válida,\n";
+    }
+    if (!idCliente || isNaN(parseInt(idCliente, 10)) || parseInt(idCliente, 10) <= 0) {
+        msj = msj + "Seleccionar un cliente válido,\n";
+    }
+    if (msj !== "Falta ") {
         alerta(msj, "Error en procedimiento");
         return false;
     }
-
     return true;
 }
 
@@ -107,13 +113,47 @@ function obtenerTextoCombo(selectorCombo, valor) {
     return opcion.length > 0 ? opcion.text().trim() : (valor ?? "");
 }
 
+function registrarEventoIrDireccion() {
+    $("#tblDatos tbody").off("click", ".btn-ir").on("click", ".btn-ir", function (evento) {
+        evento.preventDefault();
+        evento.stopPropagation();
+
+        const fila = $(this).closest("tr");
+        $("#tblDatos tbody tr.selected").removeClass("selected");
+        fila.addClass("selected");
+
+        const datosFila = $("#tblDatos").DataTable().row(fila).data();
+        console.log("Click IR -> datosFila:", datosFila);
+        if (!datosFila) return;
+
+        // Probamos cargar primero SIN llamar a Consultar() para ver si los campos toman el valor de la fila
+        $("#txtCodDirec").val(datosFila.idDir ?? "");
+        $("#txtCodigo").val(datosFila.idDir ?? "");
+        $("#txtDirec").val(datosFila["Direccion/complemento"] ?? "");
+        if (datosFila._idCliente) {
+            $("#cboCliente").val(datosFila._idCliente);
+        }
+        if (datosFila._idDepart) {
+            $("#cboDepart").val(datosFila._idDepart);
+        }
+        if (datosFila._idCiudad) {
+            $("#cboCiudad").val(datosFila._idCiudad);
+        }
+
+        console.log("Valores asignados -> codDirec:", $("#txtCodDirec").val(), "codigo:", $("#txtCodigo").val(), "direc:", $("#txtDirec").val());
+    });
+}
+
 async function llenarTabla() {
-    let clien = $("#cboCliente").val();
-    if (!clien || clien === "null") {
+    let idCliente = $("#cboCliente").val();
+    if (!idCliente || idCliente === "null" || isNaN(parseInt(idCliente, 10)) || parseInt(idCliente, 10) <= 0) {
+        if ($.fn.DataTable.isDataTable("#tblDatos")) {
+            $("#tblDatos").DataTable().clear().draw();
+        }
         return;
     }
 
-    let url = dir + "cliente/listadoDirXCliente?codCliente=" + clien;
+    let url = dir + "cliente/listadoDirXCliente?codCliente=" + idCliente.trim();
 
     try {
         const respuesta = await fetch(url, {
@@ -131,16 +171,15 @@ async function llenarTabla() {
                 idDir: item.idDir,
                 ciudad: item.ciudad,
                 departamento: obtenerTextoCombo("#cboDepart", item.iddepart),
-                cliente: obtenerTextoCombo("#cboCliente", item.ciente),
+                cliente: obtenerTextoCombo("#cboCliente", item.ciente ?? idCliente),
                 "Direccion/complemento": item.direccion,
-                // Conservamos los IDs por si los necesitas al pulsar "ir"
                 _idCiudad: item.idCiudad,
                 _idDepart: item.iddepart,
-                _idCliente: item.ciente
+                _idCliente: item.ciente ?? idCliente
             }))
             : [];
 
-        $("#tblDatos").DataTable({
+        oTabla = $("#tblDatos").DataTable({
             data: filasFormateadas,
             destroy: true,
             columns: [
@@ -158,21 +197,12 @@ async function llenarTabla() {
                 { data: "Direccion/complemento", title: "Direccion/complemento" }
             ]
         });
+
+        registrarEventoIrDireccion();
     } catch (error) {
         console.error("Error en llenarTabla:", error);
         alerta("Error en llenado de tabla", "Error en procedimiento");
     }
-}
-
-function editarFila(datosFila) {
-    let nroDoc = datosFila.find('td:eq(2)').text
-    if (nroDoc > 0) {
-        $("#cboCliente").val(nroDoc);
-        Consultar();
-        alerta("Ok", "Procedimiento con éxito");
-        return;
-    }
-    alerta("Sin registros", "Procedimiento incompleto")
 }
 
 function Cancelar() {
@@ -181,6 +211,7 @@ function Cancelar() {
     $("#cboDepart")[0].options[0].selected = true;
     $("#cboCliente")[0].options[0].selected = true;
     $("#txtDirec").val("");
+
     $("#cboCliente").trigger("focus");
 }
 
@@ -188,21 +219,20 @@ async function Consultar() {
 
     try {
 
-        let nroDoc = $("#cboCliente").val();
+        let codCliente = $("#cboCliente").val();
         Cancelar();
+        $("#cboCliente").val(codCliente);
 
-        $("#cboCliente").val(nroDoc);
-
-        if (isNaN(nroDoc) || parseFloat(nroDoc, 10) <= 0 || nroDoc.trim() == "") {
+        if (isNaN(codCliente) || parseFloat(codCliente, 10) <= 0 || codCliente.trim() == "") {
             alerta("Error, el nro. del documento no es válido", "Error en procedimiento")
             $("#cboCliente").trigger("focus");
             return;
         }
-        let url = dir + "cliente/listadoDirXCliente?codCliente=" + nroDoc
+        let url = dir + "cliente/listadoDirXCliente?codCliente=" + codCliente
 
         const datosOut = await fetch(url, {
             method: "GET",
-            mode: "cors", url,
+            mode: "cors", //url,
             headers: {
                 "content-type": "application/json",
             }
@@ -211,15 +241,21 @@ async function Consultar() {
         const datosin = await datosOut.json();
 
         if (datosin == "") {
-            alerta("No se encontró artista con nro. doc.: " + nroDoc, "Informacion del proceso")
+            alerta("No se encontró dirección para el cliente código: " + codCliente.trim(), "Información del proceso");
             return;
         }
 
-        $("#txtCodDirec").val(datosin[0].idDir);
-        $("#cboCiudad").val(datosin[0].idCiudad);
-        $("#cboDepart").val(datosin[0].iddepart);
-        $("#cboCliente").val(datosin[0].ciente);
-        $("#txtDirec").val(datosin[0].direccion);
+        const reg = datosin[0];
+        getCodigoInput().val(reg.idDir ?? "0");
+        $("#cboCliente").val(reg.ciente ?? codCliente);
+        $("#txtDirec").val(reg.direccion ?? "");
+
+        if (reg.iddepart) {
+            $("#cboDepart").val(reg.iddepart);
+            await llenarCombosCiudad(reg.idCiudad);
+        } else if (reg.idCiudad) {
+            $("#cboCiudad").val(reg.idCiudad);
+        }
 
 
     } catch (error) {
@@ -234,12 +270,18 @@ async function ejecutarComando(accion) {
     let clien = $("#cboCliente").val();
     let direccion = $("#txtDirec").val();
 
+    // Ruta por defecto para modificar (PUT)
+    let comp = "cliente/modificarDireccion";
+
     if (accion === "POST") {
         codi = "0";
         $("#txtCodDirec").val("0");
+        // Ruta para agregar (POST)
+        comp = "cliente/agregarDireccion";
     }
 
-    if (!validar(direccion)) {
+    if (!validar(direccion, depto, ciu, clien)) {
+        $("#txtDirec").trigger("focus");
         return;
     }
 
@@ -264,7 +306,7 @@ async function ejecutarComando(accion) {
     };
 
     try {
-        const response = await fetch(dir + "cliente", {
+        const response = await fetch(dir + comp, {
             method: accion,
             headers: {
                 "Content-Type": "application/json"
@@ -272,7 +314,14 @@ async function ejecutarComando(accion) {
             body: JSON.stringify(datosOut)
         });
 
-        const rpta = await response.json();
+        const textoRpta = await response.text();
+        let rpta = null;
+
+        if (textoRpta && textoRpta.trim() !== "") {
+            rpta = JSON.parse(textoRpta);
+        } else if (response.ok) {
+            rpta = codi;
+        }
 
         if (rpta == -1) {
             alerta("Problema al grabar el registro (Revisar si existe)", "Error en proceso");
@@ -283,7 +332,8 @@ async function ejecutarComando(accion) {
             $("#txtCodDirec").val(rpta);
             await llenarTabla();
         } else {
-            alerta(rpta, "Error en procedimiento");
+            const msj = typeof rpta === "object" && rpta !== null ? JSON.stringify(rpta) : String(rpta ?? "");
+            alerta(msj, "Error en procedimiento");
         }
     } catch (error) {
         alerta("Error: " + error, "Error en procedimiento");

@@ -1,5 +1,5 @@
 ﻿var dir = "http://localhost:5124/api/";
-var oTabla = $("#tblDatos").DataTable();
+var oTabla = null;
 
 
 jQuery(function () {
@@ -8,25 +8,25 @@ jQuery(function () {
 
     //Registrar los botones para responder al evento click
     $("#btnAgre").on("click", function () {
-        alerta("Agregar", "Agregando");
+        //alerta("Agregar", "Agregando");
         $("#txtCodigo").val("0");
         ejecutarComando("POST")
     });
     $("#btnModi").on("click", function () {
-        alerta("Modificar", "Modificando");
+        //alerta("Modificar", "Modificando");
         let cod = $("#txtCodigo").val();
         if (isNaN(cod) || parseInt(cod, 10) <= 0 || cod.trim() == "") {
-            alerta("Error, procedimiento no válido.", "Error, buscar primero un artista");
+            alerta("Error, procedimiento no válido.", "Debe buscar o seleccionar primero un estado de prenda");
             return;
         }
         ejecutarComando("PUT")
     });
     $("#btnBusc").on("click", function () {
-        alerta("Buscar", "Buscando");
+        //alerta("Buscar", "Buscando");
         Consultar();
     });
     $("#btnCanc").on("click", function () {
-        alerta("Cancelar", "Cancelando");
+        //alerta("Cancelar", "Cancelando");
         Cancelar();
     });
     $("#btnImpr").on("click", function () {
@@ -70,21 +70,20 @@ async function Consultar() {
 
     try {
 
-        let nroDoc = $("#txtEstadoPren").val();
+        let datoBuscado = $("#txtEstadoPren").val();
         Cancelar();
+        $("#txtEstadoPren").val(datoBuscado);
 
-        $("#txtEstadoPren").val(nroDoc);
-
-        if (nroDoc.trim() == "") {
-            alerta("Error, el nombre no es válido", "Error en procedimiento")
+        if (!datoBuscado || datoBuscado.trim() == "") {
+            alerta("Error, el nombre o dato no es válido", "Error en procedimiento");
             $("#txtEstadoPren").trigger("focus");
             return;
         }
-        let url = dir + "estadoPrenda/consultaEstadoPrenda?comando=1&dato=" + nroDoc
+        let url = dir + "estadoPrenda/consultaEstadoPrenda?comando=1&dato=" + datoBuscado
 
         const datosOut = await fetch(url, {
             method: "GET",
-            mode: "cors", url,
+            mode: "cors",
             headers: {
                 "content-type": "application/json",
             }
@@ -93,7 +92,7 @@ async function Consultar() {
         const datosin = await datosOut.json();
 
         if (datosin == "") {
-            alerta("No se encontró prenda: " + nroDoc, "Informacion del proceso")
+            alerta("No se encontró prenda: " + datoBuscado, "Informacion del proceso")
             return;
         }
 
@@ -118,7 +117,7 @@ async function ejecutarComando(accion) {
     //Confirmar procedimiento
     let rpta = "";
     if (accion === "POST") {
-        rpta = window.confirm('Estas seguro de agregar datos de: ' + Nomb + ' ?');
+        rpta = window.confirm('¿Estás seguro de agregar datos de: ' + Nomb.trim() + ' ?');
         if (rpta == false) {
             alerta('Cancelada acción de gregar', "Información");
             return;
@@ -153,7 +152,9 @@ async function ejecutarComando(accion) {
                 "Content-Type": "application/json",
             },
             body: JSON.stringify(datosOut),
+        
         });   // stringify() convierte un objeto o valor de JavaScript en una cadena de texto JSON
+
         const rpta = await response.json();
         if (rpta == -1)
             alerta("Problema al grabar el registro (Revisar si existe)", "Error en proceso");
@@ -161,8 +162,8 @@ async function ejecutarComando(accion) {
             alerta("Error al momento del grabar, reintente por favor", "Error en grabar");
         else if (rpta > 0) {
             alerta("Registro grabado con éxito", "Proceso con éxito");
-            $("#txtEstadoPren").val(rpta);
-            await Consultar();
+            $("#txtCodigo").val(rpta);
+            $("#txtEstadoPren").val(Nomb.trim());
             await llenarTabla();
         }
         else
@@ -194,52 +195,55 @@ function registrarEventoIrEstadoPrenda() {
 
         $("#txtCodigo").val(datosFila.codigo ?? "");
         $("#txtEstadoPren").val(datosFila.nombre ?? "");
+
     });
 }
 
-async function llenarTabla() {
-    const url = dir + "estadoPrenda/consultaEstadoPrenda?comando=2&dato=0";
 
-    try {
-        const respuesta = await fetch(url, {
-            method: "GET",
-            mode: "cors",
-            headers: {
-                "content-type": "application/json"
-            }
-        });
 
-        const crudo = respuesta.ok ? await respuesta.json() : null;
-        const datos = Array.isArray(crudo)
-            ? crudo
-            : (crudo?.data ?? crudo?.datos ?? crudo?.resultado ?? []);
+    async function llenarTabla() {
+        const url = dir + "estadoPrenda/consultaEstadoPrenda?comando=2&dato=0";
 
-        const filasFormateadas = Array.isArray(datos)
-            ? datos.map(item => ({
-                codigo: item.codigo ?? item.idEstadoPrenda ?? "",
-                nombre: item.nombre ?? item.estadoPrenda ?? item.nombreEstadoPrenda ?? ""
-            }))
-            : [];
+        try {
+            const respuesta = await fetch(url, {
+                method: "GET",
+                mode: "cors",
+                headers: {
+                    "content-type": "application/json"
+                }
+            });
 
-        $("#tblDatos").DataTable({
-            data: filasFormateadas,
-            destroy: true,
-            columns: [
-                {
-                    data: null,
-                    title: "Editar",
-                    orderable: false,
-                    searchable: false,
-                    defaultContent: '<button type="button" class="btn btn-info btn-sm btn-ir">ir</button>'
-                },
-                { data: "codigo", title: "Código" },
-                { data: "nombre", title: "Estado Prenda" }
-            ]
-        });
+            const crudo = respuesta.ok ? await respuesta.json() : null;
+            const datos = Array.isArray(crudo)
+                ? crudo
+                : (crudo?.data ?? crudo?.datos ?? crudo?.resultado ?? []);
 
-        registrarEventoIrEstadoPrenda();
-    } catch (error) {
-        console.error("Error en llenarTabla:", error);
-        alerta("Error en llenado de tabla", "Error en procedimiento");
+            const filasFormateadas = Array.isArray(datos)
+                ? datos.map(item => ({
+                    codigo: item.codigo ?? item.idEstadoPrenda ?? "",
+                    nombre: item.nombre ?? item.estadoPrenda ?? item.nombreEstadoPrenda ?? ""
+                }))
+                : [];
+
+            $("#tblDatos").DataTable({
+                data: filasFormateadas,
+                destroy: true,
+                columns: [
+                    {
+                        data: null,
+                        title: "Editar",
+                        orderable: false,
+                        searchable: false,
+                        defaultContent: '<button type="button" class="btn btn-info btn-sm btn-ir">ir</button>'
+                    },
+                    { data: "codigo", title: "Código" },
+                    { data: "nombre", title: "Estado Prenda" }
+                ]
+            });
+
+            registrarEventoIrEstadoPrenda();
+        } catch (error) {
+            console.error("Error en llenarTabla:", error);
+            alerta("Error en llenado de tabla", "Error en procedimiento");
+        }
     }
-}

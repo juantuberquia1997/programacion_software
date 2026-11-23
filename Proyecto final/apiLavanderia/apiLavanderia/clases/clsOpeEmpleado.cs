@@ -107,7 +107,7 @@ namespace apiLavanderia.clases
                    orderby TE.IdTelefonoEmpleado
                    select new {
                        idTel      = TE.IdTelefonoEmpleado,
-                       idTipoTel  = TE.IdTipoTelefono,
+                       empleado   = TE.EmpleadoIdEmpleado,
                        tipoTel    = IT.TipoTelefono,
                        numero     = TE.Numero
                    };

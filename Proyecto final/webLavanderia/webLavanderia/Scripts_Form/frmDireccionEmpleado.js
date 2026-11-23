@@ -6,25 +6,25 @@ jQuery(function () {
 
     //Registrar los botones para responder al evento click
     $("#btnAgre").on("click", function () {
-        alerta("Agregar", "Agregando");
+        //alerta("Agregar", "Agregando");
         $("#txtCodigo").val("0");
         ejecutarComando("POST")
     });
     $("#btnModi").on("click", function () {
-        alerta("Modificar", "Modificando");
+        //alerta("Modificar", "Modificando");
         let cod = $("#txtCodigo").val();
         if (isNaN(cod) || parseInt(cod, 10) <= 0 || cod.trim() == "") {
-            alerta("Error, procedimiento no válido.", "Error, buscar primero un artista");
+            alerta("Error, procedimiento no válido.", "Debe buscar o seleccionar primero una dirección");
             return;
         }
         ejecutarComando("PUT")
     });
     $("#btnBusc").on("click", function () {
-        alerta("Buscar", "Buscando");
+        //alerta("Buscar", "Buscando");
         Consultar();
     });
     $("#btnCanc").on("click", function () {
-        alerta("Cancelar", "Cancelando");
+        //alerta("Cancelar", "Cancelando");
         Cancelar();
     });
     $("#btnImpr").on("click", function () {
@@ -66,12 +66,6 @@ async function inicializarDireccionEmpleado() {
     await llenarTabla();
 }
 
-// function registrarCambioDepartamento() {
-//     $("#cboDepart").off("change").on("change", async function () {
-//         await llenarCombosCiudad();
-//     });
-// }
-
 function registrarEventoIrDireccion() {
     $("#tblDatos tbody").off("click", ".btn-ir").on("click", ".btn-ir", async function (evento) {
         evento.preventDefault();
@@ -99,6 +93,10 @@ function registrarEventoIrDireccion() {
             await llenarCombosCiudad(datosFila.idCiudad);
         } else if (datosFila.idCiudad !== undefined && datosFila.idCiudad !== null && datosFila.idCiudad !== "") {
             $("#cboCiudad").val(String(datosFila.idCiudad));
+        }
+
+        if (datosFila.idEmpleado && datosFila.idEmpleado.toString().trim() !== "") {
+            await Consultar();
         }
     });
 }
@@ -150,21 +148,21 @@ async function Consultar() {
 
     try {
 
-        let nroDoc = $("#cboEmpleado").val();
+        let codEmpleado = $("#cboEmpleado").val();
         Cancelar();
+        $("#cboEmpleado").val(codEmpleado);
 
-        $("#cboEmpleado").val(nroDoc);
-
-        if (isNaN(nroDoc) || parseFloat(nroDoc, 10) <= 0 || nroDoc.trim() == "") {
-            alerta("Error, el nro. del documento no es válido", "Error en procedimiento")
+        if (!codEmpleado || isNaN(codEmpleado) || parseFloat(codEmpleado, 10) <= 0 || codEmpleado.trim() == "") {
+            // CAMBIO: mensaje ajustado al empleado seleccionado
+            alerta("Error, el empleado seleccionado no es válido", "Error en procedimiento");
             $("#cboEmpleado").trigger("focus");
             return;
         }
-        let url = dir + "empleado/listadoDirXEmpleado?codEmpleado=" + nroDoc
+        let url = dir + "empleado/listadoDirXEmpleado?codEmpleado=" + codEmpleado
 
         const datosOut = await fetch(url, {
             method: "GET",
-            mode: "cors", url,
+            mode: "cors",
             headers: {
                 "content-type": "application/json",
             }
@@ -178,10 +176,13 @@ async function Consultar() {
         }
 
         $("#txtCodigo").val(datosin[0].idDir);
-        $("#cboCiudad").val(datosin[0].idCiudad);
-        $("#cboDepart").val(datosin[0].idDepart);
         $("#cboEmpleado").val(datosin[0].empleado);
         $("#txtDir").val(datosin[0].direccion);
+
+        $("#cboDepart").val(datosin[0].idDepart);
+        await llenarCombosCiudad(datosin[0].idDir);
+
+        $("#cboCiudad").val(datosin[0].idCiudad);
 
 
     } catch (error) {
@@ -196,17 +197,22 @@ async function ejecutarComando(accion) {
     let emple = $("#cboEmpleado").val();
     let direccion = $("#txtDir").val();
 
+    // CAMBIO: rutas diferenciadas para POST y PUT según el método
+    let comp = "empleado/modificarDireccion";
+
     if (accion === "POST") {
         codi = "0";
         $("#txtCodigo").val("0");
+        comp = "empleado/agregarDireccion";
     }
 
     if (!validar(direccion)) {
         return;
     }
 
-    if (accion === "PUT" && (!codi || isNaN(codi) || parseInt(codi, 10) <= 0 || codi.trim() === "")) {
-        alerta("Código no válido para modificar registro", "Alerta");
+    if (!emple || isNaN(emple) || parseInt(emple, 10) <= 0 || emple.trim() === "") {
+        alerta("Debe seleccionar un empleado válido", "Error en procedimiento");
+        $("#cboEmpleado").trigger("focus");
         return;
     }
 
@@ -218,15 +224,14 @@ async function ejecutarComando(accion) {
     }
 
     const datosOut = {
-        IdDireccionEmpleado: parseInt(codi, 10),
-        IdCiudad: parseInt(ciu, 10),
-        IdEmpleado: parseInt(emple, 10),
-        IdDepartamento: parseInt(depto, 10),
-        DireccionEmpleado: direccion.trim()
+        idDireccionEmpleado: parseInt(codi, 10),
+        idCiudad: parseInt(ciu, 10),
+        empleadoIdEmpleado: parseInt(emple, 10),
+        direccionEmpleado: direccion.trim()
     };
-
+    console.log("Enviando a:", dir + comp, "Method:", accion, "datosOut:", datosOut);
     try {
-        const response = await fetch(dir + "empleado", {
+        const response = await fetch(dir + comp, {
             method: accion,
             headers: {
                 "Content-Type": "application/json"
@@ -234,7 +239,15 @@ async function ejecutarComando(accion) {
             body: JSON.stringify(datosOut)
         });
 
-        const rpta = await response.json();
+        // CAMBIO: lectura segura por texto para soportar respuestas vacías en PUT
+        const textoRpta = await response.text();
+        let rpta = null;
+
+        if (textoRpta && textoRpta.trim() !== "") {
+            rpta = JSON.parse(textoRpta);
+        } else if (response.ok) {
+            rpta = codi;
+        }
 
         if (rpta == -1) {
             alerta("Problema al grabar el registro (Revisar si existe)", "Error en proceso");
@@ -242,11 +255,11 @@ async function ejecutarComando(accion) {
             alerta("Error al momento del grabar, reintente por favor", "Error en grabar");
         } else if (rpta > 0) {
             alerta("Registro grabado con éxito", "Proceso con éxito");
-            $("#cboEmpleado").val(rpta);
-            await Consultar();
+            $("#txtCodigo").val(rpta);
             await llenarTabla();
         } else {
-            alerta(rpta, "Error en procedimiento");
+            const msj = typeof rpta === "object" && rpta !== null ? JSON.stringify(rpta) : String(rpta ?? "");
+            alerta(msj, "Error en procedimiento");
         }
     } catch (error) {
         alerta("Error: " + error, "Error en procedimiento");

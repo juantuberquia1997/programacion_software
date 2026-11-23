@@ -1,4 +1,5 @@
 ﻿var dir = "http://localhost:5124/api/";
+var oTabla = null;
 
 jQuery(function () {
     //Carga el menú
@@ -7,12 +8,12 @@ jQuery(function () {
 
     //Registrar los botones para responder al evento click
     $("#btnAgre").on("click", function () {
-        alerta("Agregar", "Agregando");
-        $("#txtCodigo").val("0");
-        ejecutarComando("POST")
+        //alerta("Agregar", "Agregando");
+        $("#txtCodEmp").val("0");
+        ejecutarComando("POST");
     });
     $("#btnModi").on("click", function () {
-        alerta("Modificar", "Modificando");
+        //alerta("Modificar", "Modificando");
         let cod = $("#txtCodEmp").val();
         if (isNaN(cod) || parseInt(cod, 10) <= 0 || cod.trim() == "") {
             alerta("Error, procedimiento no válido.", "Error, buscar primero un empleado");
@@ -21,11 +22,11 @@ jQuery(function () {
         ejecutarComando("PUT")
     });
     $("#btnBusc").on("click", function () {
-        alerta("Buscar", "Buscando");
+        //alerta("Buscar", "Buscando");
         Consultar();
     });
     $("#btnCanc").on("click", function () {
-        alerta("Cancelar", "Cancelando");
+        //alerta("Cancelar", "Cancelando");
         Cancelar();
     });
     $("#btnImpr").on("click", function () {
@@ -127,6 +128,10 @@ function registrarEventoIrEmpleado() {
         if (datosFila.idEmpleado != undefined) {
             $("#cboEmpleado").val(datosFila.idEmpleado);
         }
+
+        if (datosFila.documento && datosFila.documento.toString().trim() !== "") {
+            Consultar();
+        }
     });
 }
 
@@ -168,9 +173,9 @@ async function ejecutarComando(accion) {
     //Confirmar procedimiento
     let rpta = "";
     if (accion === "POST") {
-        rpta = window.confirm('Estas seguro de agregar datos de: ' + Nomb + ', con bro. Doc.: ' + nroD + '?');
+        rpta = window.confirm('¿Estás seguro de agregar datos de: ' + Nomb.trim() + ', con Nro. Doc.: ' + nroD.trim() + '?');
         if (rpta == false) {
-            alerta('Cancelada acción de gregar', "Información");
+            alerta('Cancelada acción de agregar', "Información");
             return;
         }
     }
@@ -219,8 +224,8 @@ async function ejecutarComando(accion) {
             alerta("Error al momento del grabar, reintente por favor", "Error en grabar");
         else if (rpta > 0) {
             alerta("Registro grabado con éxito", "Proceso con éxito");
-            $("#txtNroDoc").val(rpta);
-            await Consultar();
+            $("#txtCodEmp").val(rpta);
+            await llenarComboEmpleado();
             await llenarTabla();
         }
         else
@@ -261,7 +266,7 @@ async function Consultar() {
 
         const datosOut = await fetch(url, {
             method: "GET",
-            mode: "cors", url,
+            mode: "cors",
             headers: {
                 "content-type": "application/json",
             }
@@ -270,7 +275,7 @@ async function Consultar() {
         const datosin = await datosOut.json();
 
         if (datosin == "") {
-            alerta("No se encontró artista con nro. doc.: " + nroDoc, "Informacion del proceso")
+            alerta("No se encontró empleado con nro. doc.: " + nroDoc, "Informacion del proceso");
             return;
         }
 

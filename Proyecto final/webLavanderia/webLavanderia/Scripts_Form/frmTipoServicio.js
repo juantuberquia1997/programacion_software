@@ -1,5 +1,5 @@
 ﻿var dir = "http://localhost:5124/api/";
-var oTabla = $("#tblDatos").DataTable();
+var oTabla = null;
 
 jQuery(function () {
     //Carga el menú
@@ -7,12 +7,12 @@ jQuery(function () {
 
     //Registrar los botones para responder al evento click
     $("#btnAgre").on("click", function () {
-        alerta("Agregar", "Agregando");
+        //alerta("Agregar", "Agregando");
         $("#txtCodigo").val("0");
         ejecutarComando("POST")
     });
     $("#btnModi").on("click", function () {
-        alerta("Modificar", "Modificando");
+        //alerta("Modificar", "Modificando");
         let cod = $("#txtCodigo").val();
         if (isNaN(cod) || parseInt(cod, 10) <= 0 || cod.trim() == "") {
             alerta("Error, procedimiento no válido.", "Error, buscar primero un artista");
@@ -21,11 +21,11 @@ jQuery(function () {
         ejecutarComando("PUT")
     });
     $("#btnBusc").on("click", function () {
-        alerta("Buscar", "Buscando");
+        //alerta("Buscar", "Buscando");
         Consultar();
     });
     $("#btnCanc").on("click", function () {
-        alerta("Cancelar", "Cancelando");
+        //alerta("Cancelar", "Cancelando");
         Cancelar();
     });
     $("#btnImpr").on("click", function () {
@@ -200,7 +200,7 @@ async function ejecutarComando(accion) {
             alerta("Error al momento del grabar, reintente por favor", "Error en grabar");
         else if (rpta > 0) {
             alerta("Registro grabado con éxito", "Proceso con éxito");
-            $("#txtNombre").val(rpta);
+            $("#txtCodigo").val(rpta);
             await Consultar();
             await llenarTabla();
         }

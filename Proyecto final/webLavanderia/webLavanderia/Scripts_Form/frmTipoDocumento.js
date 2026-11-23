@@ -7,12 +7,12 @@ jQuery(function () {
 
     //Registrar los botones para responder al evento click
     $("#btnAgre").on("click", function () {
-        alerta("Agregar", "Agregando");
+        //alerta("Agregar", "Agregando");
         $("#txtCodigo").val("0");
         ejecutarComando("POST")
     });
     $("#btnModi").on("click", function () {
-        alerta("Modificar", "Modificando");
+        //alerta("Modificar", "Modificando");
         let cod = $("#txtCodigo").val();
         if (isNaN(cod) || parseInt(cod, 10) <= 0 || cod.trim() == "") {
             alerta("Error, procedimiento no válido.", "Error, buscar primero un artista");
@@ -21,11 +21,11 @@ jQuery(function () {
         ejecutarComando("PUT")
     });
     $("#btnBusc").on("click", function () {
-        alerta("Buscar", "Buscando");
+        //alerta("Buscar", "Buscando");
         Consultar();
     });
     $("#btnCanc").on("click", function () {
-        alerta("Cancelar", "Cancelando");
+        //alerta("Cancelar", "Cancelando");
         Cancelar();
     });
     $("#btnImpr").on("click", function () {
@@ -70,30 +70,31 @@ async function Consultar() {
 
     try {
 
-        let nroDoc = $("#txtTipoDoc").val();
+        let texto = $("#txtTipoDoc").val();
         Cancelar();
+        $("#txtTipoDoc").val(texto);
 
-        $("#txtTipoDoc").val(nroDoc);
-
-        if (nroDoc.trim() == "") {
-            alerta("Error, el tipo doc. no es válido", "Error en procedimiento")
+        if (!texto || texto.trim() == "") {
+            alerta("Error, el tipo doc. no es válido", "Error en procedimiento");
             $("#txtTipoDoc").trigger("focus");
             return;
         }
-        let url = dir + "tipoDocumento/consultaTipoDocumento?comando=1&dato=" + nroDoc
+        let url = dir + "tipoDocumento/consultaTipoDocumento?comando=1&dato=" + texto.trim();
 
         const datosOut = await fetch(url, {
             method: "GET",
-            mode: "cors", url,
+            mode: "cors",
             headers: {
-                "content-type": "application/json",
+                "content-type": "application/json"
             }
         });
 
+
         const datosin = await datosOut.json();
 
-        if (datosin == "") {
-            alerta("No se encontró servicio: " + nroDoc, "Informacion del proceso")
+        if (!Array.isArray(datosin) || datosin.length === 0) {
+            $("#txtTipoDoc").val(texto);
+            alerta("No se encontró tipo de documento: " + texto, "Informacion del proceso");
             return;
         }
 
@@ -161,7 +162,7 @@ async function ejecutarComando(accion) {
             alerta("Error al momento del grabar, reintente por favor", "Error en grabar");
         else if (rpta > 0) {
             alerta("Registro grabado con éxito", "Proceso con éxito");
-            $("#txtTipoDoc").val(rpta);
+            $("#txtCodigo").val(rpta);
             await Consultar();
             await llenarTabla();
         }

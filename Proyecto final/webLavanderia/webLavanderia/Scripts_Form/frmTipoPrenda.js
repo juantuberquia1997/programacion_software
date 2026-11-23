@@ -1,5 +1,5 @@
 ﻿var dir = "http://localhost:5124/api/";
-var oTabla = $("#tblDatos").DataTable();
+var oTabla = null;
 
 jQuery(function () {
     //Carga el menú
@@ -7,35 +7,33 @@ jQuery(function () {
 
     //Registrar los botones para responder al evento click
     $("#btnAgre").on("click", function () {
-        alerta("Agregar", "Agregando");
         $("#txtCodigo").val("0");
-        ejecutarComando("POST")
+        ejecutarComando("POST");
     });
+
     $("#btnModi").on("click", function () {
-        alerta("Modificar", "Modificando");
         let cod = $("#txtCodigo").val();
         if (isNaN(cod) || parseInt(cod, 10) <= 0 || cod.trim() == "") {
-            alerta("Error, procedimiento no válido.", "Error, buscar primero un artista");
+            alerta("Error, procedimiento no válido.", "Debe buscar o seleccionar primero un tipo de prenda");
             return;
         }
-        ejecutarComando("PUT")
+        ejecutarComando("PUT");
     });
+
     $("#btnBusc").on("click", function () {
-        alerta("Buscar", "Buscando");
         Consultar();
     });
+
     $("#btnCanc").on("click", function () {
-        alerta("Cancelar", "Cancelando");
         Cancelar();
     });
+
     $("#btnImpr").on("click", function () {
         alerta("Imprimir", "En futura construcción");
-        //Imprimir();
     });
 
-    inicializarTipoPrenda()
-
-});  //Del: jQuery
+    inicializarTipoPrenda();
+}); //Del: jQuery
 
 async function inicializarTipoPrenda() {
     await llenarTabla();
@@ -59,15 +57,12 @@ function registrarEventoIrTipoPrenda() {
         $("#txtCodigo").val(datosFila.codigo ?? "");
         $("#txtTipoPren").val(datosFila.nombre ?? "");
         $("#txtNombre").val(datosFila.nombre ?? "");
-
-        if (typeof datosFila.activo === "boolean") {
-            $("#chkActivo").prop("checked", datosFila.activo);
-        }
+        $("#chkActivo").prop("checked", datosFila.activo);
     });
 }
 
-function alerta(msj, titulo) {  // Instalar en scripts_form/Comunes: sweetalert2.all.min.js y
-    Swal.fire({                   //                                   sweetalert2.min.css
+function alerta(msj, titulo) {
+    Swal.fire({
         position: 'center',
         type: 'info',
         title: titulo,
@@ -77,8 +72,8 @@ function alerta(msj, titulo) {  // Instalar en scripts_form/Comunes: sweetalert2
 
 function validar(name) {
     var msj = "Falta ";
-    if (name.trim() == "") {
-        msj = msj + "El nombre no válido,\n"
+    if (!name || name.trim() == "") {
+        msj = msj + "El nombre no válido,\n";
     }
     if (msj != "Falta ") {
         alerta(msj, "Error en procedimiento");
@@ -90,53 +85,48 @@ function validar(name) {
 function Cancelar() {
     $("#txtCodigo").val("0");
     $("#txtTipoPren").val("");
-    $("#chkActivo").prop("checked", true);
+    $("#chkActivo").prop("checked", true);  //
     $("#txtTipoPren").trigger("focus");
 }
 
 async function Consultar() {
-
     try {
-
-        let nroDoc = $("#txtTipoPren").val();
+        let tipPren = $("#txtTipoPren").val();
         Cancelar();
+        $("#txtTipoPren").val(tipPren);
 
-        $("#txtTipoPren").val(nroDoc);
-
-        if (nroDoc.trim() == "") {
-            alerta("Error, el nombre no es válido", "Error en procedimiento")
+        if (tipPren.trim() == "") {
+            alerta("Error, el nombre no es válido", "Error en procedimiento");
             $("#txtTipoPren").trigger("focus");
             return;
         }
-        let url = dir + "tipoPrenda/consultaTipoPrenda?comando=1&dato=" + nroDoc
+
+        let url = dir + "tipoPrenda/consultaTipoPrenda?comando=1&dato=" + tipPren.trim();
 
         const datosOut = await fetch(url, {
             method: "GET",
-            mode: "cors", url,
+            mode: "cors",
             headers: {
-                "content-type": "application/json",
+                "content-type": "application/json"
             }
         });
 
         const datosin = await datosOut.json();
 
         if (datosin == "") {
-            alerta("No se encontró servicio: " + nroDoc, "Informacion del proceso")
+            alerta("No se encontró tipo prenda: " + tipPren, "Informacion del proceso")
             return;
         }
 
         $("#txtCodigo").val(datosin[0].codigo);
         $("#txtTipoPren").val(datosin[0].nombre);
-        $("#chkActivo").prop("checked", datosin[0].act);
-
-
+        $("#chkActivo").prop(datosin[0].activo);
     } catch (error) {
         alerta("Error: " + error, "Error en consultar");
     }
 }
 
 async function ejecutarComando(accion) {
-    //Capturar los datos de entrada
     let Codi = $("#txtCodigo").val();
     let Nomb = $("#txtTipoPren").val();
     let acti = $("#chkActivo").prop("checked");
@@ -145,46 +135,49 @@ async function ejecutarComando(accion) {
         $("#txtTipoPren").trigger("focus");
         return;
     }
-    //Confirmar procedimiento
-    let rpta = "";
+
     if (accion === "POST") {
-        rpta = window.confirm('Estas seguro de agregar datos de: ' + Nomb + ' ?');
-        if (rpta == false) {
-            alerta('Cancelada acción de gregar', "Información");
+        Codi = "0";
+        $("#txtCodigo").val("0");
+    }
+
+    let confirma = false;
+    if (accion === "POST") {
+        confirma = window.confirm('¿Estás seguro de agregar datos de: ' + Nomb.trim() + '?');
+        if (!confirma) {
+            alerta('Cancelada acción de agregar', "Información");
             return;
         }
-    }
-    else if (accion === "PUT") {
+    } else if (accion === "PUT") {
         if (isNaN(Codi) || parseFloat(Codi, 10) <= 0 || Codi.trim() == "") {
             alerta("Código no válido para modificar registro", "Alerta");
             return;
         }
-        rpta = window.confirm('Estas seguro de modificar datos de: ' + Nomb + ' ?');
-        if (rpta == false) {
+        confirma = window.confirm('¿Estás seguro de modificar datos de: ' + Nomb.trim() + '?');
+        if (!confirma) {
             alerta('Cancelada acción de modificar', "Información");
             return;
         }
-    }
-    else {
+    } else {
         alerta("Procedimiento no válido", "Alerta");
         return;
     }
 
-    //Crear Json 
     let datosOut = {
         IdTipoPrenda: accion === "POST" ? 0 : (parseInt(Codi, 10) || 0),
-        NombrePrenda: Nomb ? Nomb.trim() : "",
-        Activo: acti
-    }
-    //Invocar el servicio con fetch
+        NombrePrenda: Nomb.trim(),
+        activo: acti
+    };
+
     try {
         const response = await fetch(dir + "tipoPrenda", {
             method: accion,
             headers: {
-                "Content-Type": "application/json",
+                "Content-Type": "application/json"
             },
-            body: JSON.stringify(datosOut),
-        });   // stringify() convierte un objeto o valor de JavaScript en una cadena de texto JSON
+            body: JSON.stringify(datosOut)
+        });
+
         const rpta = await response.json();
         if (rpta == -1)
             alerta("Problema al grabar el registro (Revisar si existe)", "Error en proceso");
@@ -192,20 +185,20 @@ async function ejecutarComando(accion) {
             alerta("Error al momento del grabar, reintente por favor", "Error en grabar");
         else if (rpta > 0) {
             alerta("Registro grabado con éxito", "Proceso con éxito");
-            $("#txtTipoPren").val(rpta);
-            await Consultar();
+            $("#txtCodigo").val(rpta);
+            // $("#txtTipoPren").val(Nomb.trim());
+            // $("#chkActivo").prop("checked", acti);
             await llenarTabla();
-        }
-        else
+        } else {
             alerta(rpta, "Error en procedimiento");
+        }
     } catch (error) {
         alerta("Error: " + error, "Error en procedimiento");
     }
-
 }
 
 async function llenarTabla() {
-    const url = dir + "tipoPrenda/consultaTipoPrenda?comando=2&dato=0";
+    const url = dir + "tipoPrenda/listadoTipoPrendas";
 
     try {
         const respuesta = await fetch(url, {
@@ -223,7 +216,6 @@ async function llenarTabla() {
 
         const filasFormateadas = Array.isArray(datos)
             ? datos.map(item => {
-                const estadoActivo = Boolean(item.act ?? item.activo ?? true);
                 return {
                     codigo: item.codigo ?? item.idTipoPrenda ?? "",
                     nombre: item.nombre ?? item.nombrePrenda ?? "",
@@ -233,7 +225,7 @@ async function llenarTabla() {
             })
             : [];
 
-        $("#tblDatos").DataTable({
+        oTabla = $("#tblDatos").DataTable({
             data: filasFormateadas,
             destroy: true,
             columns: [

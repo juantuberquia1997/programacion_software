@@ -1,5 +1,5 @@
 ﻿var dir = "http://localhost:5124/api/";
-var oTabla = $("#tblDatos").DataTable();
+var oTabla = null;
 
 jQuery(function () {
     //Carga el menú
@@ -7,42 +7,45 @@ jQuery(function () {
 
     //Registrar los botones para responder al evento click
     $("#btnAgre").on("click", function () {
-        alerta("Agregar", "Agregando");
+        //alerta("Agregar", "Agregando");
         $("#txtCodigo").val("0");
-        ejecutarComando("POST")
+        ejecutarComando("POST");
     });
+
     $("#btnModi").on("click", function () {
-        alerta("Modificar", "Modificando");
+        //alerta("Modificar", "Modificando");
         let cod = $("#txtCodigo").val();
         if (isNaN(cod) || parseInt(cod, 10) <= 0 || cod.trim() == "") {
-            alerta("Error, procedimiento no válido.", "Error, buscar primero un artista");
+            alerta("Error, procedimiento no válido.", "Debe buscar o seleccionar primero un tipo de teléfono");
             return;
         }
-        ejecutarComando("PUT")
+        ejecutarComando("PUT");
     });
+
     $("#btnBusc").on("click", function () {
-        alerta("Buscar", "Buscando");
+        //alerta("Buscar", "Buscando");
         Consultar();
     });
+
     $("#btnCanc").on("click", function () {
-        alerta("Cancelar", "Cancelando");
+        //alerta("Cancelar", "Cancelando");
         Cancelar();
     });
+
     $("#btnImpr").on("click", function () {
         alerta("Imprimir", "En futura construcción");
         //Imprimir();
     });
 
-    inicializarTipoTelefono()
-
-});  //Del: jQuery
+    inicializarTipoTelefono();
+}); //Del: jQuery
 
 async function inicializarTipoTelefono() {
     await llenarTabla();
 }
 
 function registrarEventoIrTipoTelefono() {
-    $("#tblDatos tbody").off("click", ".btn-ir").on("click", ".btn-ir", function (evento) {
+    $("#tblDatos tbody").off("click", ".btn-ir").on("click", ".btn-ir", async function (evento) {
         evento.preventDefault();
         evento.stopPropagation();
 
@@ -50,7 +53,7 @@ function registrarEventoIrTipoTelefono() {
         $("#tblDatos tbody tr.selected").removeClass("selected");
         fila.addClass("selected");
 
-        const datosFila = $("#tblDatos").DataTable().row(fila).data();
+        const datosFila = oTabla ? oTabla.row(fila).data() : $("#tblDatos").DataTable().row(fila).data();
         if (!datosFila) {
             alerta("No se pudieron leer los datos de la fila", "Error en procedimiento");
             return;
@@ -58,6 +61,10 @@ function registrarEventoIrTipoTelefono() {
 
         $("#txtCodigo").val(datosFila.codigo ?? "");
         $("#txtTipTele").val(datosFila.nombre ?? "");
+
+        if (datosFila.nombre && String(datosFila.nombre).trim() !== "") {
+            await Consultar();
+        }
     });
 }
 
@@ -72,8 +79,8 @@ function alerta(msj, titulo) {  // Instalar en scripts_form/Comunes: sweetalert2
 
 function validar(name) {
     var msj = "Falta ";
-    if (name.trim() == "") {
-        msj = msj + "El nombre no válido,\n"
+    if (!name || name.trim() == "") {
+        msj = msj + "El nombre no válido,\n";
     }
     if (msj != "Falta ") {
         alerta(msj, "Error en procedimiento");
@@ -89,40 +96,39 @@ function Cancelar() {
 }
 
 async function Consultar() {
-
     try {
-
         let nroDoc = $("#txtTipTele").val();
+        let textoOriginal = nroDoc;
         Cancelar();
-
         $("#txtTipTele").val(nroDoc);
 
-        if (nroDoc.trim() == "") {
-            alerta("Error, el nombre no es válido", "Error en procedimiento")
+        if (!nroDoc || nroDoc.trim() == "") {
+            alerta("Error, el nombre no es válido", "Error en procedimiento");
             $("#txtTipTele").trigger("focus");
             return;
         }
-        let url = dir + "tipoTelefono/consultaTipoTelefono?comando=1&dato=" + nroDoc
+
+        let url = dir + "tipoTelefono/consultaTipoTelefono?comando=1&dato=" + encodeURIComponent(nroDoc.trim());
 
         const datosOut = await fetch(url, {
             method: "GET",
-            mode: "cors", url,
+            mode: "cors",
             headers: {
-                "content-type": "application/json",
+                "content-type": "application/json"
             }
         });
 
         const datosin = await datosOut.json();
 
-        if (datosin == "") {
-            alerta("No se encontró telefono: " + nroDoc, "Informacion del proceso")
+        if (!Array.isArray(datosin) || datosin.length === 0) {
+            $("#txtTipTele").val(textoOriginal);
+            alerta("No se encontró telefono: " + nroDoc, "Informacion del proceso");
             return;
         }
 
-        $("#txtCodigo").val(datosin[0].codigo);
-        $("#txtTipTele").val(datosin[0].nombre);
-
-
+        const reg = datosin[0];
+        $("#txtCodigo").val(reg.codigo ?? reg.idTipoTelefono ?? "");
+        $("#txtTipTele").val(reg.nombre ?? reg.tipoTelefono ?? reg.nombreTipoTelefono ?? "");
     } catch (error) {
         alerta("Error: " + error, "Error en consultar");
     }
@@ -133,73 +139,86 @@ async function ejecutarComando(accion) {
     let Codi = $("#txtCodigo").val();
     let Nomb = $("#txtTipTele").val();
 
+    if (accion === "POST") {
+        Codi = "0";
+        $("#txtCodigo").val("0");
+    }
+
     if (!validar(Nomb)) {
         $("#txtTipTele").trigger("focus");
         return;
     }
+
     //Confirmar procedimiento
-    let rpta = "";
+    let confirma = false;
     if (accion === "POST") {
-        rpta = window.confirm('Estas seguro de agregar datos de: ' + Nomb + ' ?');
-        if (rpta == false) {
-            alerta('Cancelada acción de gregar', "Información");
+        confirma = window.confirm('¿Estás seguro de agregar datos de: ' + Nomb.trim() + '?');
+        if (!confirma) {
+            alerta('Cancelada acción de agregar', "Información");
             return;
         }
-    }
-    else if (accion === "PUT") {
+    } else if (accion === "PUT") {
         if (isNaN(Codi) || parseFloat(Codi, 10) <= 0 || Codi.trim() == "") {
             alerta("Código no válido para modificar registro", "Alerta");
             return;
         }
-        rpta = window.confirm('Estas seguro de modificar datos de: ' + Nomb  + ' ?');
-        if (rpta == false) {
+        confirma = window.confirm('¿Estás seguro de modificar datos de: ' + Nomb.trim() + '?');
+        if (!confirma) {
             alerta('Cancelada acción de modificar', "Información");
             return;
         }
-    }
-    else {
+    } else {
         alerta("Procedimiento no válido", "Alerta");
         return;
     }
 
-    //Crear Json 
+    //Crear Json
     let datosOut = {
         IdTipoTelefono: accion === "POST" ? 0 : (parseInt(Codi, 10) || 0),
-        TipoTelefono: Nomb ? Nomb.trim() : "",
-    }
+        TipoTelefono: Nomb.trim()
+    };
+
     //Invocar el servicio con fetch
     try {
         const response = await fetch(dir + "tipoTelefono", {
             method: accion,
             headers: {
-                "Content-Type": "application/json",
+                "Content-Type": "application/json"
             },
-            body: JSON.stringify(datosOut),
-        });   // stringify() convierte un objeto o valor de JavaScript en una cadena de texto JSON
-        const rpta = await response.json();
-        if (rpta == -1)
-            alerta("Problema al grabar el registro (Revisar si existe)", "Error en proceso");
-        else if (rpta == 0)
-            alerta("Error al momento del grabar, reintente por favor", "Error en grabar");
-        else if (rpta > 0) {
-            alerta("Registro grabado con éxito", "Proceso con éxito");
-            $("#txtTipTele").val(rpta);
-            await Consultar();
-            await llenarTabla();
+            body: JSON.stringify(datosOut)
+        });
+
+        const textoRpta = await response.text();
+        let rpta = null;
+        if (textoRpta && textoRpta.trim() !== "") {
+            rpta = JSON.parse(textoRpta);
+        } else if (response.ok) {
+            rpta = Codi;
         }
-        else
-            alerta(rpta, "Error en procedimiento");
+
+        if (rpta == -1) {
+            alerta("Problema al grabar el registro (Revisar si existe)", "Error en proceso");
+        } else if (rpta == 0) {
+            alerta("Error al momento del grabar, reintente por favor", "Error en grabar");
+        } else if (rpta > 0) {
+            alerta("Registro grabado con éxito", "Proceso con éxito");
+            $("#txtCodigo").val(rpta);
+            $("#txtTipTele").val(Nomb.trim());
+            await llenarTabla();
+        } else {
+            const msj = typeof rpta === "object" && rpta !== null ? JSON.stringify(rpta) : String(rpta ?? "");
+            alerta(msj, "Error en procedimiento");
+        }
     } catch (error) {
         alerta("Error: " + error, "Error en procedimiento");
     }
-
 }
 
 async function llenarTabla() {
     const urlPrincipal = dir + "tipoTelefono/listadoTipoTelefonos";
 
     try {
-        let respuesta = await fetch(urlPrincipal, {
+        const respuesta = await fetch(urlPrincipal, {
             method: "GET",
             mode: "cors",
             headers: {
@@ -207,24 +226,10 @@ async function llenarTabla() {
             }
         });
 
-        let crudo = respuesta.ok ? await respuesta.json() : null;
-        let datos = Array.isArray(crudo)
+        const crudo = respuesta.ok ? await respuesta.json() : [];
+        const datos = Array.isArray(crudo)
             ? crudo
-            : (crudo?.data ?? crudo?.datos ?? crudo?.resultado ?? null);
-
-        if (!Array.isArray(datos)) {
-            const respAlterna = await fetch(urlRespaldo, {
-                method: "GET",
-                mode: "cors",
-                headers: {
-                    "content-type": "application/json"
-                }
-            });
-            const crudoAlt = respAlterna.ok ? await respAlterna.json() : [];
-            datos = Array.isArray(crudoAlt)
-                ? crudoAlt
-                : (crudoAlt?.data ?? crudoAlt?.datos ?? crudoAlt?.resultado ?? []);
-        }
+            : (crudo?.data ?? crudo?.datos ?? crudo?.resultado ?? []);
 
         const filasFormateadas = Array.isArray(datos)
             ? datos.map(item => ({
@@ -233,9 +238,12 @@ async function llenarTabla() {
             }))
             : [];
 
-        $("#tblDatos").DataTable({
+        if ($.fn.DataTable.isDataTable("#tblDatos")) {
+            $("#tblDatos").DataTable().clear().destroy();
+        }
+
+        oTabla = $("#tblDatos").DataTable({
             data: filasFormateadas,
-            destroy: true,
             columns: [
                 {
                     data: null,

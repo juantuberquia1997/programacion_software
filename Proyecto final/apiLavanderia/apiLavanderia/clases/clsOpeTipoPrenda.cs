@@ -29,7 +29,8 @@ namespace apiLavanderia.clases
                    where IP.NombrePrenda == nombre
                    select new {
                        codigo = IP.IdTipoPrenda,
-                       nombre = IP.NombrePrenda
+                       nombre = IP.NombrePrenda,
+                       activo = IP.Activo
                    };
         }
 
@@ -41,7 +42,8 @@ namespace apiLavanderia.clases
                    select new {
                        editar = "<a class='btn btn-info btn-sm' href=''><i class='fa fa-search-plus'></i> ir </a>",
                        codigo = IP.IdTipoPrenda,
-                       nombre = IP.NombrePrenda
+                       nombre = IP.NombrePrenda,
+                       activo = IP.Activo
                    }; // Los 3 <th></th> para la tabla
         }
 

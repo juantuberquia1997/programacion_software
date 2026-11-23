@@ -34,7 +34,6 @@ jQuery(function () {
 });
 
 function alerta(msj, titulo) {
-    // SweetAlert2 versión local usa "type" en lugar de "icon"
     Swal.fire({
         position: "center",
         icon: "info",
@@ -43,13 +42,19 @@ function alerta(msj, titulo) {
     });
 }
 
-function validar(name, nroDoc) {
+function validar(name, nroDoc, empleado, tipoDoc) {
     var msj = "Falta ";
     if (!name || name.trim() === "") {
         msj = msj + "El nombre no válido,\n";
     }
-    if (!nroDoc || isNaN(nroDoc) || parseFloat(nroDoc, 10) <= 0 || nroDoc.trim() === "") {
+    if (!nroDoc || nroDoc.trim() === "") {
         msj = msj + "el nro. de documento no es válido,\n";
+    }
+    if (!empleado || isNaN(parseInt(empleado, 10)) || parseInt(empleado, 10) <= 0) {
+        msj = msj + "seleccionar un empleado válido,\n";
+    }
+    if (!tipoDoc || isNaN(parseInt(tipoDoc, 10)) || parseInt(tipoDoc, 10) <= 0) {
+        msj = msj + "seleccionar un tipo de documento válido,\n";
     }
     if (msj !== "Falta ") {
         alerta(msj, "Error en procedimiento");
@@ -91,6 +96,10 @@ function registrarEventoIrCliente() {
         $("#txtNombre").val(datosFila.nombre ?? "");
         $("#txtNroDoc").val(datosFila.documento ?? "");
         seleccionarComboPorTexto("#cboTipoDoc", datosFila.tipoDocumento);
+
+        if (datosFila.documento && datosFila.documento.toString().trim() !== "") {
+            Consultar();
+        }
     });
 }
 
@@ -119,7 +128,7 @@ async function ejecutarComando(accion) {
     let idTD = $("#cboTipoDoc").val();
     let nroD = $("#txtNroDoc").val();
 
-    if (!validar(Nomb, nroD)) {
+    if (!validar(Nomb, nroD, Empl, idTD)) {
         $("#txtNombre").trigger("focus");
         return;
     }
@@ -148,7 +157,7 @@ async function ejecutarComando(accion) {
 
     let datosOut = {
         tblCliente: {
-            idCliente: Codi && Codi.trim() !== "" ? parseInt(Codi, 10) : 0,
+            idCliente: accion === "POST" ? 0 : parseInt(Codi, 10),
             empleadoIdEmpleado: parseInt(Empl, 10),
             idTipoDocumento: parseInt(idTD, 10),
             nombreApellidoCliente: Nomb.trim(),
@@ -206,7 +215,7 @@ async function Consultar() {
     try {
         let nroDoc = $("#txtNroDoc").val();
 
-        if (!nroDoc || isNaN(nroDoc) || parseFloat(nroDoc, 10) <= 0 || nroDoc.trim() === "") {
+        if (!nroDoc || nroDoc.trim() === "") {
             alerta("Error, el nro. del documento no es válido", "Error en procedimiento");
             $("#txtNroDoc").trigger("focus");
             return;

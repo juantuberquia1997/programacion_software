@@ -57,7 +57,7 @@
                                             <div class="col-md-3">
                                                 <div class="form-group">
                                                     <label for="cboCliente">Cliente:</label>
-                                                    <select id="cboCliente" class="form-control">
+                                                    <select id="cboCliente" class="form-control" onchange="llenarTabla()">
                                                     </select>
                                                 </div>
                                             </div>
@@ -120,9 +120,11 @@
                                 <!-- Acá rows para la tabla Principal-->
                                 <div class="row">
                                     <div class="col-md-12">
-                                        <table id="tablaDatos" class="table table-bordered table-striped">
+                                        <table id="tblDatos" class="table table-bordered table-striped">
                                             <thead>
                                                 <tr>
+                                                    <th></th>
+                                                    <th></th>
                                                     <th></th>
                                                     <th></th>
                                                     <th></th>
