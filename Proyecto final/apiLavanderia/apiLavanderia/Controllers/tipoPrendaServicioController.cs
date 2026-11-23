@@ -22,6 +22,14 @@ namespace apiLavanderia.Controllers
             return x.listaTipoPrendaServicios();
         }
 
+        //Combo de tarifas activas con descripcion (servicio - prenda)
+        [HttpGet("comboTipoPrendaServicios")]
+        public IQueryable comboTipoPrendaServicios()
+        {
+            clsOpeTipoPrendaServicio x = new clsOpeTipoPrendaServicio(ctx);
+            return x.comboTipoPrendaServicios();
+        }
+
         //Valor unitario de un servicio para una prenda (para el detalle del ingreso)
         [HttpGet("consultaVrUnitario")]
         public IQueryable consultarValorUnitario(int idServicio, int idPrenda)

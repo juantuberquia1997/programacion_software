@@ -18,7 +18,11 @@
 
 
     <!-- Estilos para los Select (combos) -->
+    <link href="../Estilos/select2.min.css" rel="stylesheet" />
+    <link href="../Estilos/select2-bootstrap4.min.css" rel="stylesheet" />
     <!-- Estilos para las tablas(datatables) -->
+    <link href="../Estilos/dataTables.bootstrap4.min.css" rel="stylesheet" />
+    <link href="../Estilos/dataTables.min.css" rel="stylesheet" />
 
 </head>
 <body class="hold-transition sidebar-mini">
@@ -140,14 +144,21 @@
                                                                 </div>
                                                             </td>
                                                         </tr>
-                                                        <tr>
-                                                            <td colspan="5">
-                                                                <div class="form-group mb-0">
-                                                                    <label for="txtObservacion">Observación:</label>
-                                                                    <input type="text" class="form-control" id="txtObservacion" placeholder="Manchas, botones, cuidados especiales...">
-                                                                </div>
-                                                            </td>
-                                                        </tr>
+                                        <tr>
+                                            <td colspan="5">
+                                                <div class="form-group mb-0">
+                                                    <label for="txtObservacion">Observación:</label>
+                                                    <input type="text" class="form-control" id="txtObservacion" placeholder="Manchas, botones, cuidados especiales...">
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td colspan="5">
+                                                <button type="button" id="btnAgregarLinea" class="btn btn-success btn-block">
+                                                    <i class="fas fa-plus mr-1"></i> Agregar línea al detalle
+                                                </button>
+                                            </td>
+                                        </tr>
                                                     </thead>
                                                 </table>
                                             </div>
@@ -167,6 +178,7 @@
                                                             <th>Cantidad</th>
                                                             <th>Valor</th>
                                                             <th>Observación</th>
+                                                            <th>Domicilio</th>
                                                             <th>Acción</th>
                                                         </tr>
                                                     </thead>
@@ -248,7 +260,12 @@
     <script src="../Scripts_Form/Comunes/sweetalert2.all.min.js"></script>
 
     <!-- Select2 -->
+    <script src="../Scripts/select2.min.js"></script>
+    <script src="../Scripts_Form/Comunes/Combos.js"></script>
+    <script src="../Scripts_Form/Comunes/Tablas.js"></script>
     <!--Librerías comunes de JavaScript para las Tablas -->
+    <script src="../Scripts/jquery.dataTables.min.js"></script>
+    <script src="../Scripts/dataTables.bootstrap4.min.js"></script>
     <!-- Impresión -->
     <!-- Para el script de control del form -->
     <script src="../Scripts_Form/frmIngreso.js"></script>

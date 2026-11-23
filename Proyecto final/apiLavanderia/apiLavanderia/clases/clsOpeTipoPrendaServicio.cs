@@ -23,6 +23,22 @@ namespace apiLavanderia.clases
                 .ToList();
         }
 
+        //iqueryable: combo de tarifas activas con descripcion (servicio - prenda)
+        public IQueryable comboTipoPrendaServicios()
+        {
+            return from PS in ctx.Set<TblTipoPrendaServicio>()
+                   join IS in ctx.Set<TblTipoServicio>() on PS.IdTipoServicio equals IS.IdTipoServicio
+                   join IP in ctx.Set<TblTipoPrenda>() on PS.IdTipoPrenda equals IP.IdTipoPrenda
+                   where PS.Activo == true
+                   orderby IS.NombreServicio, IP.NombrePrenda
+                   select new {
+                       codigo        = PS.IdTipoPrendaServicio,
+                       nombre        = IS.NombreServicio + " - " + IP.NombrePrenda,
+                       idPrenda      = PS.IdTipoPrenda,
+                       valorUnitario = PS.ValorUnitario
+                   };
+        }
+
         //iqueryable: consultar el valor unitario de un servicio para una prenda
         public IQueryable valorUnitarioXPrendaServicio(int idServicio, int idPrenda)
         {

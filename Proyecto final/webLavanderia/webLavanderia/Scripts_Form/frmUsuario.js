@@ -1,4 +1,4 @@
-﻿var dir = "http://localhost:5124/api/";
+var dir = "http://localhost:5124/api/";
 var oTabla = null;
 
 jQuery(function () {
@@ -28,11 +28,6 @@ jQuery(function () {
         //alerta("Cancelar", "Cancelando");
         Cancelar();
     });
-    $("#btnImpr").on("click", function () {
-        alerta("Imprimir", "En futura construcción");
-        //Imprimir();
-    });
-
     inicializarUsuario()
 });  //Del: jQuery
 
