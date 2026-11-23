@@ -14,13 +14,20 @@ namespace apiLavanderia.clases
         //Propiedad de entrada y salida con los datos del usuario
         public TblUsuario tblUsuario { get; set; }
 
-        //Combo: usuarios activos
-        public List<TblUsuario> listaUsuarios()
+        //iqueryable: listar todos los usuarios (activos e inactivos) para llenar la tabla
+        public IQueryable listarUsuariosTodos()
         {
-            return ctx.TblUsuarios
-                .Where(x => x.Activo == true)
-                .OrderBy(x => x.Usuario)
-                .ToList();
+            return from IU in ctx.Set<TblUsuario>()
+                   join IE in ctx.Set<TblEmpleado>() on IU.EmpleadoIdEmpleado equals IE.IdEmpleado
+                   orderby IU.Usuario
+                   select new {
+                       codigo   = IU.IdUsuarios,
+                       idEmp    = IU.EmpleadoIdEmpleado,
+                       empleado = IE.NombreApellidoEmp,
+                       usuario  = IU.Usuario,
+                       clave    = IU.Clave,
+                       act      = IU.Activo
+                   };
         }
 
         //iqueryable: validar el login de un usuario (usuario + clave)

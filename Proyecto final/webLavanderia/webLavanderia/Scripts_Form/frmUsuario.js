@@ -213,7 +213,7 @@ async function Consultar() {
 }
 
 async function llenarTabla() {
-    const urlPrincipal = dir + "usuario/listadoUsuarios";
+    const urlPrincipal = dir + "usuario/listadoUsuariosTodos";
 
     try {
         let respuesta = await fetch(urlPrincipal, {

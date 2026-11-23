@@ -15,11 +15,11 @@ namespace apiLavanderia.Controllers
             this.ctx = ctx;
         }
 
-        [HttpGet("listadoUsuarios")]
-        public List<TblUsuario> listarUsuarios()
+        [HttpGet("listadoUsuariosTodos")]
+        public IQueryable listarUsuariosTodos()
         {
             clsOpeUsuario x = new clsOpeUsuario(ctx);
-            return x.listaUsuarios();
+            return x.listarUsuariosTodos();
         }
 
         //Validar el login del usuario (usuario + clave)
