@@ -1,5 +1,4 @@
 ﻿var dir = "http://localhost:5124/api/";
-var oTabla = $("#tblDatos").DataTable();
 
 jQuery(function () {
     //Carga el menú
@@ -33,9 +32,14 @@ jQuery(function () {
         //Imprimir();
     });
 
+    inicializarFormulario();
 
 });  //Del: jQuery
 
+async function inicializarFormulario() {
+    await llenarComboClientes();
+    await llenarComboTipoTelefono();
+}
 
 function alerta(msj, titulo) {  // Instalar en scripts_form/Comunes: sweetalert2.all.min.js y
     Swal.fire({                   //                                   sweetalert2.min.css
@@ -52,6 +56,17 @@ async function llenarComboClientes() {
 
     if (rpta != "Termino") {
         alerta("Error llenando combo de cliente!", "Error en procedimiento");
+        return false;
+    }
+    return true;
+}
+
+async function llenarComboTipoTelefono() {
+    let url = dir + "tipoTelefono/listadoTipoTelefonos";
+    let rpta = await llenarComboGral(url, "#cboTipoTel", "idTipoTelefono", "tipoTelefono");
+
+    if (rpta != "Termino") {
+        alerta("Error llenando combo de tipo de teléfono!", "Error en procedimiento");
         return false;
     }
     return true;

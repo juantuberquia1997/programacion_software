@@ -1,5 +1,4 @@
 ﻿var dir = "http://localhost:5124/api/";
-var oTabla = $("#tblDatos").DataTable();
 
 jQuery(function () {
     //Carga el menú
