@@ -8,6 +8,9 @@ jQuery(function () {
     $("#btnAgre").on("click", function () {
         agregarIngreso();
     });
+    $("#btnBusc").on("click", function () {
+        consultarIngreso();
+    });
     $("#btnCanc").on("click", function () {
         limpiarFormulario();
     });
@@ -326,13 +329,76 @@ async function agregarIngreso() {
             alerta("Error al grabar el detalle (se deshizo el encabezado)", "Error en grabar");
         } else if (rpta > 0) {
             alerta("Ingreso " + rpta + " grabado con éxito", "Proceso con éxito");
-            limpiarFormulario();
             $("#txtCodigo").val(rpta);
+            consultarIngreso();
         } else {
             alerta(rpta, "Error en procedimiento");
         }
     } catch (error) {
         alerta("Error: " + error, "Error en procedimiento");
+    }
+}
+
+// Consultar un ingreso existente y recargar el formulario (encabezado + detalle)
+async function consultarIngreso() {
+    let codigoIngreso = $("#txtCodigo").val();
+    if (codigoIngreso == undefined || codigoIngreso.trim() == "" || parseInt(codigoIngreso, 10) <= 0) {
+        alerta("Ingrese un número de ingreso válido", "Error");
+        $("#txtCodigo").trigger("focus");
+        return;
+    }
+
+    try {
+        // 1. Encabezado del ingreso
+        let urlEncabezado = dir + "ingreso/buscarIngreso?codIngreso=" + parseInt(codigoIngreso, 10);
+        const respuestaEncabezado = await fetch(urlEncabezado, { method: "GET", mode: "cors" });
+        const datosEncabezado = await respuestaEncabezado.json();
+
+        if (datosEncabezado == "") {
+            alerta("No se encontró el ingreso #" + codigoIngreso, "Información");
+            return;
+        }
+
+        // 2. Detalle del ingreso
+        let urlDetalle = dir + "ingreso/consultarDetalleIngreso?codIngreso=" + parseInt(codigoIngreso, 10);
+        const respuestaDetalle = await fetch(urlDetalle, { method: "GET", mode: "cors" });
+        const lineasDetalle = await respuestaDetalle.json();
+
+        // Rellenar encabezado
+        $("#txtCodigo").val(datosEncabezado[0].idIngreso);
+        $("#cboCliente").val(datosEncabezado[0].idCliente);
+        await llenarComboDirecciones(datosEncabezado[0].idDir);   // carga direcciones del cliente y selecciona
+        $("#cboEmpleado").val(datosEncabezado[0].idEmp);
+        $("#txtFechaIngreso").val((datosEncabezado[0].fecha ?? "").toString().split('T')[0]);
+        $("#chkDomicilio").prop("checked", datosEncabezado[0].domicilio === true);
+        $("#chkActivo").prop("checked", datosEncabezado[0].activo === true);
+
+        // Rellenar la tabla de detalle
+        $("#tbodyDetalleIngreso").empty();
+        lineasDetalle.forEach((linea, indice) => {
+            let fila = `
+                <tr>
+                    <td>${linea.idDet ?? (indice + 1)}</td>
+                    <td>${linea.servicio} - ${linea.prenda}</td>
+                    <td>${linea.estado}</td>
+                    <td></td>
+                    <td>${linea.cantidad}</td>
+                    <td></td>
+                    <td>${parseFloat(linea.valor || 0).toFixed(2)}</td>
+                    <td>${linea.observacion ?? ""}</td>
+                    <td>${datosEncabezado[0].domicilio === true ? "true" : "false"}</td>
+                    <td></td>
+                </tr>`;
+            $("#tbodyDetalleIngreso").append(fila);
+        });
+
+        // Total = suma de los valores del detalle
+        let valorTotal = 0;
+        lineasDetalle.forEach(linea => { valorTotal += parseFloat(linea.valor) || 0; });
+        $("#txtValorTotal").val(valorTotal.toFixed(2));
+    } catch (error) {
+        console.error("Error consultando ingreso:", error);
+        alerta("Error al consultar el ingreso", "Error en procedimiento");
     }
 }
 
