@@ -8,17 +8,17 @@ jQuery(function () {
     $("#btnAgre").on("click", function () {
         agregarIngreso();
     });
-    $("#btnModi").on("click", function () {
-        alerta("Modificar", "En futura construcción");
-    });
-    $("#btnBusc").on("click", function () {
-        alerta("Buscar", "En futura construcción");
-    });
     $("#btnCanc").on("click", function () {
         limpiarFormulario();
     });
     $("#btnImpr").on("click", function () {
-        alerta("Impresión", "En futura construcción");
+        let nroIngreso = $("#txtCodigo").val();
+        if (nroIngreso == undefined || nroIngreso.trim() == "" || parseInt(nroIngreso, 10) <= 0) {
+            alerta("Número de ingreso no válido", "Error");
+            $("#txtCodigo").trigger("focus");
+            return;
+        }
+        cargarDatosImp(nroIngreso);
     });
 
     //Botón para agregar una línea al detalle
@@ -266,14 +266,14 @@ function renumerarLineas() {
 
 async function agregarIngreso() {
     let clien = $("#cboCliente").val();
-    let dir = $("#cboDireccionCliente").val();
+    let idDireccion = $("#cboDireccionCliente").val();
     let emple = $("#cboEmpleado").val();
 
     if (!clien || clien === "null") {
         alerta("Seleccione un cliente", "Error en procedimiento");
         return;
     }
-    if (!dir || dir === "null") {
+    if (!idDireccion || idDireccion === "null") {
         alerta("Seleccione una dirección", "Error en procedimiento");
         return;
     }
@@ -299,7 +299,7 @@ async function agregarIngreso() {
 
     const datosOut = {
         IdCliente: parseInt(clien, 10),
-        IdDireccion: parseInt(dir, 10),
+        IdDireccion: parseInt(idDireccion, 10),
         EmpleadoIdEmpleado: parseInt(emple, 10),
         Fecha: $("#txtFechaIngreso").val(),
         Domicilio: $("#chkDomicilio").prop("checked"),
@@ -326,12 +326,141 @@ async function agregarIngreso() {
             alerta("Error al grabar el detalle (se deshizo el encabezado)", "Error en grabar");
         } else if (rpta > 0) {
             alerta("Ingreso " + rpta + " grabado con éxito", "Proceso con éxito");
-            $("#txtCodigo").val(rpta);
             limpiarFormulario();
+            $("#txtCodigo").val(rpta);
         } else {
             alerta(rpta, "Error en procedimiento");
         }
     } catch (error) {
         alerta("Error: " + error, "Error en procedimiento");
     }
+}
+
+// ====== Impresión (jsPDF) ======
+var detMaeImp = [];   // Arreglo con los datos del detalle para el PDF
+var encMaeImp = null; // Datos del encabezado para el PDF
+
+function fechaHoy_Hora() {
+    let f = new Date();
+    let y = f.getFullYear();
+    let m = f.getMonth() + 1;
+    let d = f.getDate();
+    let h = f.getHours();
+    let mi = f.getMinutes();
+    if (d < 10) { d = '0' + d; }
+    if (m < 10) { m = '0' + m; }
+    if (h < 10) { h = '0' + h; }
+    if (mi < 10) { mi = '0' + mi; }
+    return "" + d + "/" + m + "/" + y + " " + h + ":" + mi;
+}
+
+async function cargarDatosImp(cod) {
+    try {
+        // 1. Encabezado del ingreso
+        let urlEnc = dir + "ingreso/buscarIngreso?codIngreso=" + cod;
+        const respEnc = await fetch(urlEnc);
+        const datosEnc = await respEnc.json();
+        encMaeImp = Array.isArray(datosEnc) ? datosEnc[0] : datosEnc;
+
+        // 2. Detalle del ingreso
+        let urlDet = dir + "ingreso/consultarDetalleIngreso?codIngreso=" + cod;
+        const respDet = await fetch(urlDet);
+        const datosDet = await respDet.json();
+        detMaeImp = Array.isArray(datosDet) ? datosDet : [];
+
+        if (!encMaeImp) {
+            alerta("Ingreso # " + cod + " no encontrado");
+            return;
+        }
+        if (detMaeImp.length === 0) {
+            alerta("Ingreso # " + cod + " sin detalle");
+            return;
+        }
+        imprimir();
+    } catch (error) {
+        alerta("Error al cargar los datos:", " - " + error);
+    }
+}
+
+function imprimir() {
+    var f = new Date();
+    let fecha = fechaHoy_Hora();
+    let nombreDoc = 'Ingreso_' + f.getDate() + (f.getMonth() + 1) + f.getFullYear() + "_" + f.getHours() + "_" + f.getMinutes() + '.pdf';
+
+    var doc = new jsPDF('p', 'pt', 'letter');
+    var docWidth = doc.internal.pageSize.width;
+
+    // Encabezado
+    doc.setFontStyle('bold');
+    doc.setFontSize(16);
+    doc.text("Lavandería Los Trajes", 145, 45);
+    doc.setFontSize(12);
+    doc.text("Medellín", 280, 65);
+    doc.text("Registro de Ingreso", 230, 80);
+    doc.setFontSize(10);
+    doc.text("Fecha Impresión: " + fecha, 400, 80);
+    doc.setFontSize(12);
+
+    // Datos del encabezado
+    let cliente = encMaeImp.cliente ?? "";
+    let empleado = encMaeImp.empleado ?? "";
+    let nroIng = encMaeImp.idIngreso ?? $("#txtCodigo").val();
+    let fecIng = (encMaeImp.fecha ?? "").toString().split('T')[0];
+    let domicilio = encMaeImp.domicilio === true ? "Sí" : "No";
+
+    // Total = suma de los valores del detalle
+    let total = 0;
+    detMaeImp.forEach(d => { total += parseFloat(d.valor) || 0; });
+
+    doc.setFontSize(11);
+    doc.setFont("helvetica", "normal");
+    let y = 110;
+
+    doc.text("Cliente: " + cliente, 40, y);
+    doc.text("Nro. Ingreso: " + nroIng, 240, y);
+    doc.text("Fecha Ingreso: " + fecIng, 340, y);
+    doc.text("Domicilio: " + domicilio, 470, y);
+
+    y += 20;
+    doc.text("Empleado: " + empleado, 40, y);
+    doc.text("Valor Total: " + total.toFixed(2), 240, y);
+
+    y += 20;
+    doc.line(40, y, docWidth - 40, y);
+    y += 20;
+
+    // Título detalle
+    doc.setFontSize(14);
+    doc.setFont("helvetica", "bold");
+    doc.text("Detalle del Ingreso", 250, y);
+    y += 20;
+
+    // Encabezados de la tabla
+    doc.setFontSize(10);
+    const encabezados = ["Servicio", "Prenda", "Estado", "Cantidad", "Valor"];
+    let xPos = [50, 180, 300, 420, 500];
+    for (let i = 0; i < encabezados.length; i++) {
+        doc.text(encabezados[i], xPos[i], y);
+    }
+
+    y += 10;
+    doc.line(40, y, docWidth - 40, y);
+    y += 15;
+
+    // Filas del detalle
+    doc.setFont("helvetica", "normal");
+    detMaeImp.forEach(dMat => {
+        if (y > 750) {
+            doc.addPage();
+            y = 40;
+        }
+        doc.text((dMat.servicio ?? "").toString(), xPos[0], y);
+        doc.text((dMat.prenda ?? "").toString(), xPos[1], y);
+        doc.text((dMat.estado ?? "").toString(), xPos[2], y);
+        doc.text((dMat.cantidad ?? 0).toString(), xPos[3], y);
+        doc.text(parseFloat(dMat.valor || 0).toFixed(2), xPos[4], y);
+        y += 15;
+    });
+
+    doc.save(nombreDoc);
 }
