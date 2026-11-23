@@ -322,6 +322,9 @@ async function Consultar() {
         $("#txtSalario").val(datosin[0].salario);
         $("#chkActivo").prop("checked", datosin[0].act);
 
+        // Marcar las profesiones del empleado consultado
+        await marcarProfesionesEmpleado(datosin[0].codigo);
+
 
     } catch (error) {
         alerta("Error: " + error, "Error en consultar");
