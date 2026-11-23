@@ -72,6 +72,7 @@ function validar(name, nroDoc) {
 async function inicializarEmpleado() {
     await llenarComboEmpleado();
     await llenarComboTipoDoc();
+    await llenarComboProfesion();
     await llenarTabla();
 }
 
@@ -124,6 +125,11 @@ function registrarEventoIrEmpleado() {
             $("#cboEmpleado").val(datosFila.idEmpleado);
         }
 
+        // Marcar las profesiones del empleado seleccionado
+        if (datosFila.codigo != undefined && datosFila.codigo != "") {
+            marcarProfesionesEmpleado(datosFila.codigo);
+        }
+
         if (datosFila.documento && datosFila.documento.toString().trim() !== "") {
             Consultar();
         }
@@ -147,6 +153,32 @@ async function llenarComboEmpleado() {
     if (rpta != "Termino") {
         alerta("Error llenando combo de empleados!", "Error en procedimiento");
         return;
+    }
+}
+
+async function llenarComboProfesion() {
+    let url = dir + "profesion/listadoProfesiones";
+    let rpta = await llenarComboGral(url, "#cboProfesion", "idProfesion", "nombreProfesion");
+
+    if (rpta != "Termino") {
+        alerta("Error llenando combo de profesiones!", "Error en procedimiento");
+        return;
+    }
+}
+
+async function marcarProfesionesEmpleado(codEmpleado) {
+    try {
+        let url = dir + "empleado/listadoProfXEmpleado?codEmpleado=" + codEmpleado;
+        const respuesta = await fetch(url, { method: "GET", mode: "cors" });
+        const datos = await respuesta.json();
+        $("#cboProfesion").val([]);
+        if (Array.isArray(datos)) {
+            const ids = datos.map(p => String(p.idProfesion));
+            $("#cboProfesion").val(ids);
+            $("#cboProfesion").trigger("change");
+        }
+    } catch (error) {
+        console.error("Error marcando profesiones:", error);
     }
 }
 
@@ -191,6 +223,10 @@ async function ejecutarComando(accion) {
     }
 
     //Crear Json 
+    let profesionesSel = $("#cboProfesion").val() || [];
+    if (!Array.isArray(profesionesSel)) {
+        profesionesSel = [profesionesSel];
+    }
     let datosOut = {
         tblEmpleado: {
             idEmpleado: Codi && Codi.trim() !== "" ? parseInt(Codi, 10) : 0,
@@ -201,7 +237,8 @@ async function ejecutarComando(accion) {
             salario: parseFloat(sala),
             fechaIngreso: fechaHoy(),
             activo: acti
-        }
+        },
+        profesiones: profesionesSel.map(p => parseInt(p, 10))
     }
     //Invocar el servicio con fetch
     try {
@@ -240,6 +277,8 @@ function Cancelar() {
     $("#txtFechaIngreso").val(fechaHoy());
     $("#txtSalario").val("");
     $("#chkActivo").prop("checked", true);
+    $("#cboProfesion").val([]);
+    $("#cboProfesion").trigger("change");
     $("#txtNombre").trigger("focus");
 }
 
@@ -310,6 +349,7 @@ async function llenarTabla() {
                 tipoDocumento: item.tipoDoc ?? item.nombreDocumento ?? "",
                 documento: item.documento ?? item.documentoEmpleado ?? "",
                 salario: item.salario ?? "",
+                profesiones: item.profesiones ?? "",
                 fechaIngreso: item.fechaIng ?? item.fechaIngreso ?? "",
                 activo: item.act ?? item.activo ?? true,
                 idTipoDoc: item.idTD ?? item.idTipoDocumento,
@@ -332,7 +372,8 @@ async function llenarTabla() {
                 { data: "nombre", title: "Nombre" },
                 { data: "tipoDocumento", title: "Tipo Documento" },
                 { data: "documento", title: "Nro. Documento" },
-                { data: "salario", title: "Salario" }
+                { data: "salario", title: "Salario" },
+                { data: "profesiones", title: "Profesiones" }
             ]
         });
 

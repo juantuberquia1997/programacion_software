@@ -63,7 +63,12 @@ namespace apiLavanderia.clases
                        tipoDoc  = ITD.NombreDocumento,
                        documento = IE.DocumentoEmpleado,
                        salario  = IE.Salario,
-                       activo   = IE.Activo
+                       activo   = IE.Activo,
+                       profesiones = string.Join(", ",
+                           (from HP in ctx.Set<TblEmpleadoHasProfesion>()
+                            join IP in ctx.Set<TblProfesion>() on HP.ProfesionIdProfesion equals IP.IdProfesion
+                            where HP.EmpleadoIdEmpleado == IE.IdEmpleado
+                            select IP.NombreProfesion).ToList())
                    }; // Los 7 <th></th> para la tabla
         }
 
