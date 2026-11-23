@@ -2,12 +2,14 @@
     //Carga el menú
     $("#dvMenu").load("../Paginas/Menu.html");
 
-    let nombreUsu = sessionStorage.getItem("noUsu",);
-    let idUsu = sessionStorage.getItem("idUsu",);
+    const nombreEmpleado = sessionStorage.getItem("noUsu");;
+    const idUsuario = sessionStorage.getItem("idUsu");
+    const idNum = Number(idUsuario);
 
-    if (nombreUsu.trim == "" || idUsu.trim == "" || idUsu <= 0) {
-        location.href("../default1.aspx");
+    if (!nombreEmpleado || !idUsuario || Number.isNaN(idNum) || idNum <= 0) {
+        location.href = "../default1.aspx";
+        return;
     }
 
-    $("#txtEmpleado").text(nombreUsu);
+    $("#txtEmpleado").val(nombreEmpleado);
 });

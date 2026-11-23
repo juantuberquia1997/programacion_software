@@ -156,6 +156,9 @@
     <Content Include="Estilos\webfonts\fa-solid-900.svg" />
     <Content Include="favicon.ico" />
     <Content Include="Global.asax" />
+    <Content Include="Imgs\Lavanderia.jpg" />
+    <Content Include="Imgs\LogoLavanderia.jpg" />
+    <Content Include="Imgs\Portada.jpg" />
     <Content Include="Paginas\frmCiudad.html" />
     <Content Include="Paginas\frmCliente.html" />
     <Content Include="Paginas\frmDireccionCliente.html" />
@@ -269,6 +272,7 @@
     <Content Include="Scripts\WebForms\WebUIValidation.js" />
     <Content Include="Scripts_Form\Comunes\bootstrap.min.css" />
     <Content Include="Scripts_Form\Comunes\Combos.js" />
+    <Content Include="Scripts_Form\Comunes\Sesion.js" />
     <Content Include="Scripts_Form\Comunes\sweetalert2.all.min.js" />
     <Content Include="Scripts_Form\Comunes\sweetalert2.min.css" />
     <Content Include="Scripts_Form\Comunes\Tablas.js" />
@@ -357,7 +361,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
-    <Folder Include="Imágenes\" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

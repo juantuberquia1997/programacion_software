@@ -86,6 +86,7 @@ namespace apiLavanderia.clases
                 }
                 // Actualiza cada dato
                 rgro.NombrePrenda = tblTipoPrenda.NombrePrenda;
+                rgro.Activo = tblTipoPrenda.Activo;
                 ctx.SaveChanges();
                 return tblTipoPrenda.IdTipoPrenda;
             }

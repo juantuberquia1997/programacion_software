@@ -38,7 +38,7 @@
                 <tr>
                     <td>&nbsp;</td>
                     <td>&nbsp;</td>
-                    <td>-- xxxxx --</td>
+                    <td><img src="Imgs/Portada.jpg" style="width: 90%; height: auto;" /></td>
                     <td>&nbsp;</td>
                     <td>&nbsp;</td>
                 </tr>

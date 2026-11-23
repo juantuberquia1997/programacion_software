@@ -165,8 +165,8 @@ async function ejecutarComando(accion) {
 
     let datosOut = {
         IdTipoPrenda: accion === "POST" ? 0 : (parseInt(Codi, 10) || 0),
-        NombrePrenda: Nomb.trim(),
-        activo: acti
+        nombrePrenda: Nomb.trim(),
+        activo: Boolean(acti)
     };
 
     try {
@@ -216,6 +216,7 @@ async function llenarTabla() {
 
         const filasFormateadas = Array.isArray(datos)
             ? datos.map(item => {
+                const estadoActivo = Boolean(item.activo ?? item.act ?? true);
                 return {
                     codigo: item.codigo ?? item.idTipoPrenda ?? "",
                     nombre: item.nombre ?? item.nombrePrenda ?? "",

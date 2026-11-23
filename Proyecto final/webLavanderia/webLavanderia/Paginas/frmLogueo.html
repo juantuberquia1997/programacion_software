@@ -1,8 +1,17 @@
 ﻿<!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
     <meta charset="utf-8" />
-    <title></title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Inicio de Sesión - Lavandería Los Trajes</title>
+    <!-- Google Font: Source Sans Pro -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback" />
+    <!-- Font Awesome -->
+    <link href="../Estilos/css/all.min.css" rel="stylesheet" />
+    <!-- Theme style (AdminLTE) -->
+    <link href="../Estilos/adminlte.min.css" rel="stylesheet" />
+    <!-- SweetAlert2 -->
+    <link href="../Scripts_Form/Comunes/sweetalert2.min.css" rel="stylesheet" />
     <style type="text/css">
         .auto-style1 {
             width: 90%;
@@ -11,46 +20,63 @@
         }
     </style>
 </head>
-<body>
-    <table align="center" cellpadding="3" class="auto-style1">
-        <tr>
-            <td>&nbsp;</td>
-            <td>&nbsp;</td>
-            <td>&nbsp;</td>
-            <td>&nbsp;</td>
-            <td>&nbsp;</td>
-        </tr>
-        <tr>
-            <td>&nbsp;</td>
-            <td>&nbsp;</td>
-            <td>&nbsp;</td>
-            <td>&nbsp;</td>
-            <td>&nbsp;</td>
-        </tr>
-        <tr>
-            <td>&nbsp;</td>
-            <td>Usuario:</td>
-            <td><input id="txtUsuario" type="text" /></td>
-            <td>&nbsp;</td>
-            <td>&nbsp;</td>
-        </tr>
-        <tr>
-            <td>&nbsp;</td>
-            <td>Clave:</td>
-            <td><input id="txtClave" type="text" /></td>
-            <td>&nbsp;</td>
-            <td>&nbsp;</td>
-        </tr>
-        <tr>
-            <td>&nbsp;</td>
-            <td><input id="btnLimpiar" type="button" value="Limpiar" /></td>
-            <td>&nbsp;</td>
-            <td><input id="btnIngresar" type="button" value="Ingresar" /></td>
-            <td>&nbsp;</td>
-        </tr>
-    </table>
-    <script src="../Scripts/jquery-3.7.0.min.js"></script>
-    <script src="../Scripts_Form/frmLogueo.js"></script>
+<body class="hold-transition login-page">
+    <form id="frmLogueo" class="w-100" autocomplete="off">
+        <table align="center" cellpadding="3" class="auto-style1">
+            <tr>
+                <td> </td>
+                <td> </td>
+                <td class="text-center font-weight-bold">Inicie sesión</td>
+                <td> </td>
+                <td> </td>
+            </tr>
+            <tr>
+                <td> </td>
+                <td> </td>
+                <td> </td>
+                <td> </td>
+                <td> </td>
+            </tr>
+            <tr>
+                <td> </td>
+                <td><label for="txtUsuario" class="mb-0">Usuario:</label></td>
+                <td><input id="txtUsuario" type="text" class="form-control" placeholder="Ingrese Usuario..." autocomplete="username" /></td>
+                <td> </td>
+                <td> </td>
+            </tr>
+            <tr>
+                <td> </td>
+                <td><label for="txtClave" class="mb-0">Clave:</label></td>
+                <td><input id="txtClave" type="text" class="form-control" placeholder="Ingrese Clave..." autocomplete="current-password" /></td>
+                <td> </td>
+                <td> </td>
+            </tr>
+            <tr>
+                <td> </td>
+                <td>
+                    <button id="btnLimpiar" type="button" class="btn btn-secondary btn-block">
+                        <i class="fas fa-eraser mr-1"></i> Limpiar
+                    </button>
+                </td>
+                <td> </td>
+                <td>
+                    <button id="btnIngresar" type="button" class="btn btn-primary btn-block">
+                        <i class="fas fa-sign-in-alt mr-1"></i> Ingresar
+                    </button>
+                </td>
+                <td> </td>
+            </tr>
+        </table>
+    </form>
 
+    <!-- Scripts base (conservar el orden) -->
+    <script src="../Scripts/jquery-3.7.0.min.js"></script>
+    <script src="../Scripts/bootstrap.bundle.min.js"></script>
+    <!-- AdminLTE App -->
+    <script src="../Scripts/adminlte.js"></script>
+    <!-- SweetAlert2 -->
+    <script src="../Scripts_Form/Comunes/sweetalert2.all.min.js"></script>
+    <!-- Script de control del formulario -->
+    <script src="../Scripts_Form/frmLogueo.js"></script>
 </body>
 </html>
