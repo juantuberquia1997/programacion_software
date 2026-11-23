@@ -26,6 +26,13 @@ jQuery(function () {
         agregarLineaDetalle();
     });
 
+    //Botón para quitar una línea del detalle
+    $("#tbodyDetalleIngreso").on("click", ".btn-quitar", function () {
+        $(this).closest("tr").remove();
+        renumerarLineas();
+        actualizarTotal();
+    });
+
     //Al cambiar de cliente se cargan sus direcciones
     $("#cboCliente").on("change", function () {
         llenarComboDirecciones();
@@ -133,6 +140,7 @@ async function calcularValorLinea() {
     let idTPS = $("#cboTipoPrendaServicio").val();
     if (!idTPS || idTPS === "null") {
         $("#txtValorLinea").val("");
+        $("#txtTotalLinea").val("");
         $("#txtDescuento").val("");
         return;
     }
@@ -144,11 +152,13 @@ async function calcularValorLinea() {
         const item = (Array.isArray(datos) ? datos : []).find(x => String(x.codigo) === String(idTPS));
         if (!item) {
             $("#txtValorLinea").val("");
+            $("#txtTotalLinea").val("");
             return;
         }
 
         let cant = parseInt($("#txtCantidad").val(), 10) || 1;
-        let valorBase = parseFloat(item.valorUnitario) * cant;
+        let valorUnitario = parseFloat(item.valorUnitario) || 0;
+        let subtotal = valorUnitario * cant;
 
         // Descuento por tipo de prenda y cantidad
         let urlDesc = dir + "descuento/consultaDescuentoXPrenda?idPrenda=" + item.idPrenda;
@@ -165,15 +175,16 @@ async function calcularValorLinea() {
             }
         }
 
-        let valorFinal = valorBase;
+        let total = subtotal;
         if (porcentaje > 0) {
-            valorFinal = valorBase * (1 - (porcentaje / 100));
+            total = subtotal * (1 - (porcentaje / 100));
             $("#txtDescuento").val(porcentaje + "%");
         } else {
             $("#txtDescuento").val("0%");
         }
 
-        $("#txtValorLinea").val(valorFinal.toFixed(2));
+        $("#txtValorLinea").val(subtotal.toFixed(2));
+        $("#txtTotalLinea").val(total.toFixed(2));
     } catch (error) {
         console.error("Error calculando valor:", error);
     }
@@ -183,7 +194,8 @@ function agregarLineaDetalle() {
     let idTPS = $("#cboTipoPrendaServicio").val();
     let idEstado = $("#cboEstadoPrenda").val();
     let cant = $("#txtCantidad").val();
-    let valor = $("#txtValorLinea").val();
+    let subtotal = $("#txtValorLinea").val();
+    let total = $("#txtTotalLinea").val();
     let obs = $("#txtObservacion").val();
 
     if (!idTPS || idTPS === "null") {
@@ -202,15 +214,21 @@ function agregarLineaDetalle() {
     const nomTPS = $("#cboTipoPrendaServicio option:selected").text();
     const nomEstado = $("#cboEstadoPrenda option:selected").text();
 
+    // ID consecutivo local de la línea (aún no guardada en BD)
+    const numLinea = $("#tbodyDetalleIngreso tr").length + 1;
+    const domicilio = $("#chkDomicilio").prop("checked");
+
     let fila = `
         <tr>
-            <td></td>
+            <td>${numLinea}</td>
             <td>${nomTPS}</td>
             <td>${nomEstado}</td>
             <td>${$("#txtDescuento").val()}</td>
             <td>${parseInt(cant, 10)}</td>
-            <td>${parseFloat(valor).toFixed(2)}</td>
+            <td>${parseFloat(subtotal || 0).toFixed(2)}</td>
+            <td>${parseFloat(total || 0).toFixed(2)}</td>
             <td>${obs}</td>
+            <td>${domicilio ? "true" : "false"}</td>
             <td><button type="button" class="btn btn-danger btn-sm btn-quitar">Quitar</button></td>
         </tr>`;
     $("#tbodyDetalleIngreso").append(fila);
@@ -226,16 +244,24 @@ function agregarLineaDetalle() {
     $("#txtCantidad").val("1");
     $("#txtObservacion").val("");
     $("#txtValorLinea").val("");
+    $("#txtTotalLinea").val("");
     $("#txtDescuento").val("");
 }
 
 function actualizarTotal() {
     let total = 0;
     $("#tbodyDetalleIngreso tr").each(function () {
-        const valor = parseFloat($(this).find("td:eq(5)").text()) || 0;
+        const valor = parseFloat($(this).find("td:eq(6)").text()) || 0;
         total += valor;
     });
     $("#txtValorTotal").val(total.toFixed(2));
+}
+
+// Renumera la columna ID Detalle después de quitar líneas
+function renumerarLineas() {
+    $("#tbodyDetalleIngreso tr").each(function (index) {
+        $(this).find("td:eq(0)").text(index + 1);
+    });
 }
 
 async function agregarIngreso() {
@@ -262,7 +288,7 @@ async function agregarIngreso() {
             IdTipoPrendaServicio: parseInt($(this).data("idTPS"), 10),
             IdEstadoPrenda: parseInt($(this).data("idEstado"), 10),
             Cantidad: parseInt($(this).data("cantidad"), 10),
-            Observacion: $(this).find("td:eq(6)").text().trim()
+            Observacion: $(this).find("td:eq(7)").text().trim()
         });
     });
 

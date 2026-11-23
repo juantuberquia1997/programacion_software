@@ -111,54 +111,60 @@
                                                 <table id="tablaCapturaDetalle" class="table table-bordered table-striped">
                                                     <thead>
                                                         <tr>
-                                                            <td style="width: 30%;">
+                                                            <td style="width: 26%;">
                                                                 <div class="form-group">
                                                                     <label for="cboTipoPrendaServicio">Tipo Prenda / Servicio:</label>
                                                                     <select id="cboTipoPrendaServicio" class="form-control select2" style="width: 100%;">
                                                                     </select>
                                                                 </div>
                                                             </td>
-                                                            <td style="width: 20%;">
+                                                            <td style="width: 18%;">
                                                                 <div class="form-group">
                                                                     <label for="cboEstadoPrenda">Estado Prenda:</label>
                                                                     <select id="cboEstadoPrenda" class="form-control">
                                                                     </select>
                                                                 </div>
                                                             </td>
-                                                            <td style="width: 12%;">
+                                                            <td style="width: 10%;">
                                                                 <div class="form-group">
                                                                     <label for="txtCantidad">Cantidad:</label>
                                                                     <input type="number" min="1" class="form-control" id="txtCantidad" value="1">
                                                                 </div>
                                                             </td>
-                                                            <td style="width: 20%;">
+                                                            <td style="width: 14%;">
                                                                 <div class="form-group">
                                                                     <label for="txtDescuento">Descuento:</label>
-                                                                    <input type="number" class="form-control" id="txtDescuento" disabled>
+                                                                    <input type="text" class="form-control" id="txtDescuento" disabled>
                                                                 </div>
                                                             </td>
-                                                            <td style="width: 18%;">
+                                                            <td style="width: 16%;">
                                                                 <div class="form-group">
-                                                                    <label for="txtValorLinea">Valor:</label>
-                                                                    <input type="number" step="0.01" class="form-control" id="txtValorLinea" disabled placeholder="0.00">
+                                                                    <label for="txtValorLinea">Subtotal:</label>
+                                                                    <input type="text" class="form-control" id="txtValorLinea" disabled placeholder="0.00">
+                                                                </div>
+                                                            </td>
+                                                            <td style="width: 16%;">
+                                                                <div class="form-group">
+                                                                    <label for="txtTotalLinea">Total:</label>
+                                                                    <input type="text" class="form-control" id="txtTotalLinea" disabled placeholder="0.00">
                                                                 </div>
                                                             </td>
                                                         </tr>
-                                        <tr>
-                                            <td colspan="5">
-                                                <div class="form-group mb-0">
-                                                    <label for="txtObservacion">Observación:</label>
-                                                    <input type="text" class="form-control" id="txtObservacion" placeholder="Manchas, botones, cuidados especiales...">
-                                                </div>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td colspan="5">
-                                                <button type="button" id="btnAgregarLinea" class="btn btn-success btn-block">
-                                                    <i class="fas fa-plus mr-1"></i> Agregar línea al detalle
-                                                </button>
-                                            </td>
-                                        </tr>
+                                                        <tr>
+                                                            <td colspan="6">
+                                                                <div class="form-group mb-0">
+                                                                    <label for="txtObservacion">Observación:</label>
+                                                                    <input type="text" class="form-control" id="txtObservacion" placeholder="Manchas, botones, cuidados especiales...">
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td colspan="6">
+                                                                <button type="button" id="btnAgregarLinea" class="btn btn-success btn-block">
+                                                                    <i class="fas fa-plus mr-1"></i> Agregar línea al detalle
+                                                                </button>
+                                                            </td>
+                                                        </tr>
                                                     </thead>
                                                 </table>
                                             </div>
@@ -176,7 +182,8 @@
                                                             <th>Estado Prenda</th>
                                                             <th>Descuento</th>
                                                             <th>Cantidad</th>
-                                                            <th>Valor</th>
+                                                            <th>Subtotal</th>
+                                                            <th>Total</th>
                                                             <th>Observación</th>
                                                             <th>Domicilio</th>
                                                             <th>Acción</th>
