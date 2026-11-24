@@ -14,15 +14,6 @@ namespace apiLavanderia.clases
         //Propiedad de entrada y salida con los datos del tipo de servicio
         public TblTipoServicio tblTipoServicio { get; set; }
 
-        //Combo: tipos de servicio activos
-        public List<TblTipoServicio> listaTipoServicios()
-        {
-            return ctx.TblTipoServicios
-                .Where(x => x.Activo == true)
-                .OrderBy(x => x.NombreServicio)
-                .ToList();
-        }
-
         //iqueryable: consultar un tipo de servicio por su nombre
         public IQueryable tipoServicioXNombre(string nombre)
         {

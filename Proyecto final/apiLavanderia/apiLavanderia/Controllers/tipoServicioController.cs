@@ -15,13 +15,6 @@ namespace apiLavanderia.Controllers
             this.ctx = ctx;
         }
 
-        [HttpGet("listadoTipoServicios")]
-        public List<TblTipoServicio> listarTipoServicios()
-        {
-            clsOpeTipoServicio x = new clsOpeTipoServicio(ctx);
-            return x.listaTipoServicios();
-        }
-
         //Servicio de consulta: comando 1 = consultar por nombre, comando 2 = llenar tabla
         [HttpGet("consultaTipoServicio")]
         public IQueryable Get(int comando, string dato)

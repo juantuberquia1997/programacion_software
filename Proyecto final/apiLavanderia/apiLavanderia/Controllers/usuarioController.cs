@@ -39,8 +39,6 @@ namespace apiLavanderia.Controllers
             {
                 case 1: // Consultar un usuario por su nombre de usuario
                     return oX.usuarioXNombre(dato);
-                case 2: // Llenar tabla
-                    return oX.listarUsuariosTabla();
                 default:
                     return Enumerable.Empty<string>().AsQueryable();
             }
