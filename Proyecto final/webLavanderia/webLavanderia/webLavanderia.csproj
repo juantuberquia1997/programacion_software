@@ -156,6 +156,9 @@
     <Content Include="Estilos\webfonts\fa-solid-900.svg" />
     <Content Include="favicon.ico" />
     <Content Include="Global.asax" />
+    <Content Include="Imgs\Lavanderia.jpg" />
+    <Content Include="Imgs\LogoLavanderia.jpg" />
+    <Content Include="Imgs\Portada.jpg" />
     <Content Include="Paginas\frmCiudad.html" />
     <Content Include="Paginas\frmCliente.html" />
     <Content Include="Paginas\frmDireccionCliente.html" />
@@ -165,6 +168,7 @@
     <Content Include="Paginas\frmEstadoPrenda.html" />
     <Content Include="Paginas\frmInicio.html" />
     <Content Include="Paginas\frmIngreso.html" />
+    <Content Include="Paginas\frmLogueo.html" />
     <Content Include="Paginas\frmProfesion.html" />
     <Content Include="Paginas\frmTelefonoCliente.html" />
     <Content Include="Paginas\frmTelefonoEmpleado.html" />
@@ -176,6 +180,7 @@
     <Content Include="Paginas\Menu.html" />
     <Content Include="Paginas\PaginaBase.html" />
     <Content Include="Paginas\paraDiseño.html" />
+    <Content Include="default1.aspx" />
     <Content Include="Scripts\adminlte.js" />
     <Content Include="Scripts\adminlte.min.js" />
     <Content Include="Scripts\bootstrap.bundle.js" />
@@ -267,6 +272,7 @@
     <Content Include="Scripts\WebForms\WebUIValidation.js" />
     <Content Include="Scripts_Form\Comunes\bootstrap.min.css" />
     <Content Include="Scripts_Form\Comunes\Combos.js" />
+    <Content Include="Scripts_Form\Comunes\Sesion.js" />
     <Content Include="Scripts_Form\Comunes\sweetalert2.all.min.js" />
     <Content Include="Scripts_Form\Comunes\sweetalert2.min.css" />
     <Content Include="Scripts_Form\Comunes\Tablas.js" />
@@ -279,6 +285,7 @@
     <Content Include="Scripts_Form\frmEstadoPrenda.js" />
     <Content Include="Scripts_Form\frmIngreso.js" />
     <Content Include="Scripts_Form\frmInicio.js" />
+    <Content Include="Scripts_Form\frmLogueo.js" />
     <Content Include="Scripts_Form\frmProfesion.js" />
     <Content Include="Scripts_Form\frmTelefonoCliente.js" />
     <Content Include="Scripts_Form\frmTelefonoEmpleado.js" />
@@ -322,6 +329,13 @@
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
+    <Compile Include="default1.aspx.cs">
+      <DependentUpon>default1.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="default1.aspx.designer.cs">
+      <DependentUpon>default1.aspx</DependentUpon>
+    </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Site.Master.cs">
       <DependentUpon>Site.Master</DependentUpon>
@@ -332,12 +346,14 @@
     </Compile>
     <Compile Include="Site.Mobile.Master.cs">
       <DependentUpon>Site.Mobile.Master</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
     </Compile>
     <Compile Include="Site.Mobile.Master.designer.cs">
       <DependentUpon>Site.Mobile.Master</DependentUpon>
     </Compile>
     <Compile Include="ViewSwitcher.ascx.cs">
       <DependentUpon>ViewSwitcher.ascx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
     </Compile>
     <Compile Include="ViewSwitcher.ascx.designer.cs">
       <DependentUpon>ViewSwitcher.ascx</DependentUpon>
@@ -345,7 +361,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
-    <Folder Include="Imágenes\" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Maestro </title>
+    <title>Ingresos </title>
     <!-- Scripts Base Sup -->
     <!-- Google Api Font: Source Sans Pro -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
@@ -18,7 +18,11 @@
 
 
     <!-- Estilos para los Select (combos) -->
+    <link href="../Estilos/select2.min.css" rel="stylesheet" />
+    <link href="../Estilos/select2-bootstrap4.min.css" rel="stylesheet" />
     <!-- Estilos para las tablas(datatables) -->
+    <link href="../Estilos/dataTables.bootstrap4.min.css" rel="stylesheet" />
+    <link href="../Estilos/dataTables.min.css" rel="stylesheet" />
 
 </head>
 <body class="hold-transition sidebar-mini">
@@ -32,7 +36,7 @@
                 <div class="col-md-12">
                     <div class="card card-primary">
                         <div class="card-header">
-                            <h3 class="card-title">Maestro de </h3>
+                            <h3 class="card-title">Maestro de Ingreso</h3>
                         </div>
                         <form id="frmDatosIn">
                             <div class="card-body">
@@ -47,69 +51,150 @@
                                             <div class="col-md-2">
                                                 <div class="form-group">
                                                     <label for="txtCodigo">Código:</label>
-                                                    <input type="text" class="form-control" id="txtCodigo" width="15" placeholder="Ingrese Código...">
-                                                </div>
-                                            </div>
-                                            <div class="col-md-3">
-                                                <div class="form-group">
-                                                    <label for="cboClie">Cliente:</label>
-                                                    <select id="cboClie" class="form-control">
-                                                    </select>
-                                                </div>
-                                            </div>
-                                            <div class="col-md-1">
-                                                <div class="form-group">
-                                                    <label for="chkDomicilio">Domicilio:</label>
-                                                    <input type="checkbox" class="form-control" id="chkDomicilio" placeholder="CHECKBOX">
+                                                    <input type="text" class="form-control label_1" id="txtCodigo">
                                                 </div>
                                             </div>
                                             <div class="col-md-4">
                                                 <div class="form-group">
-                                                    <label for="cboDomicilio">Dirección Domicilio:</label>
-                                                    <select id="cboDomicilio" class="form-control">
+                                                    <label for="cboCliente">Cliente:</label>
+                                                    <select id="cboCliente" class="form-control select2" style="width: 100%;">
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="form-group">
+                                                    <label for="cboEmpleado">Empleado:</label>
+                                                    <select id="cboEmpleado" class="form-control select2" style="width: 100%;">
                                                     </select>
                                                 </div>
                                             </div>
                                             <div class="col-md-2">
                                                 <div class="form-group">
-                                                    <label for="lblFechaInsc">Fecha Inscrip:</label>
-                                                    <input type="text" class="form-control" id="lblFechaInsc" width="15" disabled>
+                                                    <label for="txtFechaIngreso">Fecha de Ingreso:</label>
+                                                    <input type="date" class="form-control" id="txtFechaIngreso" disabled>
                                                 </div>
                                             </div>
                                         </div>
+
                                         <!-- 2do. row -->
                                         <div class="row">
-                                            <div class="col-md-2">
+                                            <div class="col-md-1">
                                                 <div class="form-group">
-                                                    <label for="cboPrenda">Prenda:</label>
-                                                    <select id="cboPrenda" class="form-control">
+                                                    <label for="chkDomicilio">Domicilio:</label>
+                                                    <input type="checkbox" class="form-control" id="chkDomicilio">
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label for="cboDireccionCliente">Dirección Cliente:</label>
+                                                    <select id="cboDireccionCliente" class="form-control select2" style="width: 100%;">
                                                     </select>
                                                 </div>
                                             </div>
                                             <div class="col-md-4">
                                                 <div class="form-group">
-                                                    <label for="cboEmpleado">¿Quién Inscribe?:</label>
-                                                    <select id="cboEmpleado" class="form-control">
-                                                    </select>
-                                                </div>
-                                            </div>
-
-                                            <div class="col-md-2">
-                                                <div class="form-group">
-                                                    <label for="txtValorTot">Valor Total Inscrip:</label>
-                                                    <input type="text" class="label_1" id="txtValorTot" width="15" disabled placeholder="Valor de la inscripción...">
+                                                    <label for="txtValorTotal">Valor Total Ingreso:</label>
+                                                    <input type="text" class="form-control label_1" id="txtValorTotal" disabled placeholder="0.00">
                                                 </div>
                                             </div>
                                             <div class="col-md-1">
                                                 <div class="form-group">
                                                     <label for="chkActivo">Activo:</label>
-                                                    <input type="checkbox" class="form-control" id="chkActivo" placeholder="CHECKBOX">
+                                                    <input type="checkbox" class="form-control" id="chkActivo">
                                                 </div>
                                             </div>
                                         </div>
-                                        <!-- Acá para más rows para datos -->
 
-                                    </div>   <!-- Fin class="card-body"-->
+                                        <!-- 3er. row (detalle_ingreso) -->
+                                        <div class="row">
+                                            <div class="col-md-12">
+                                                <table id="tablaCapturaDetalle" class="table table-bordered table-striped">
+                                                    <thead>
+                                                        <tr>
+                                                            <td style="width: 26%;">
+                                                                <div class="form-group">
+                                                                    <label for="cboTipoPrendaServicio">Tipo Prenda / Servicio:</label>
+                                                                    <select id="cboTipoPrendaServicio" class="form-control select2" style="width: 100%;">
+                                                                    </select>
+                                                                </div>
+                                                            </td>
+                                                            <td style="width: 18%;">
+                                                                <div class="form-group">
+                                                                    <label for="cboEstadoPrenda">Estado Prenda:</label>
+                                                                    <select id="cboEstadoPrenda" class="form-control">
+                                                                    </select>
+                                                                </div>
+                                                            </td>
+                                                            <td style="width: 10%;">
+                                                                <div class="form-group">
+                                                                    <label for="txtCantidad">Cantidad:</label>
+                                                                    <input type="number" min="1" class="form-control" id="txtCantidad" value="1">
+                                                                </div>
+                                                            </td>
+                                                            <td style="width: 14%;">
+                                                                <div class="form-group">
+                                                                    <label for="txtDescuento">Descuento:</label>
+                                                                    <input type="text" class="form-control" id="txtDescuento" disabled>
+                                                                </div>
+                                                            </td>
+                                                            <td style="width: 16%;">
+                                                                <div class="form-group">
+                                                                    <label for="txtValorLinea">Subtotal:</label>
+                                                                    <input type="text" class="form-control" id="txtValorLinea" disabled placeholder="0.00">
+                                                                </div>
+                                                            </td>
+                                                            <td style="width: 16%;">
+                                                                <div class="form-group">
+                                                                    <label for="txtTotalLinea">Total:</label>
+                                                                    <input type="text" class="form-control" id="txtTotalLinea" disabled placeholder="0.00">
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td colspan="6">
+                                                                <div class="form-group mb-0">
+                                                                    <label for="txtObservacion">Observación:</label>
+                                                                    <input type="text" class="form-control" id="txtObservacion" placeholder="Manchas, botones, cuidados especiales...">
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td colspan="6">
+                                                                <button type="button" id="btnAgregarLinea" class="btn btn-success btn-block">
+                                                                    <i class="fas fa-plus mr-1"></i> Agregar línea al detalle
+                                                                </button>
+                                                            </td>
+                                                        </tr>
+                                                    </thead>
+                                                </table>
+                                            </div>
+                                        </div>
+
+                                        <!-- Tabla de ítems del detalle -->
+                                        <div class="row mt-3">
+                                            <div class="col-md-12">
+                                                <h5>Detalle del Ingreso</h5>
+                                                <table id="tablaDetalleIngreso" class="table table-bordered table-striped">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>ID Detalle</th>
+                                                            <th>Tipo Prenda / Servicio</th>
+                                                            <th>Estado Prenda</th>
+                                                            <th>Descuento</th>
+                                                            <th>Cantidad</th>
+                                                            <th>Subtotal</th>
+                                                            <th>Total</th>
+                                                            <th>Observación</th>
+                                                            <th>Domicilio</th>
+                                                            <th>Acción</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody id="tbodyDetalleIngreso">
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
                                     <!-- Menú de Opciones -->
                                     <div class="card-body">
 
@@ -121,15 +206,9 @@
                                             </div>
                                             <div class="col-md-3">
                                                 <div class="form-group">
-                                                    <button type="button" id="btnModi" class="btn-block btn-lg btn-primary">Modificar</button>
-                                                </div>
-                                            </div>
-                                            <div class="col-md-2">
-                                                <div class="form-group">
                                                     <button type="button" id="btnBusc" class="btn-block btn-lg btn-primary">Buscar</button>
                                                 </div>
                                             </div>
-
                                             <div class="col-md-3">
                                                 <div class="form-group">
                                                     <button type="button" id="btnCanc" class="btn-block btn-lg btn-primary">Cancelar/Limpiar</button>
@@ -182,8 +261,14 @@
     <script src="../Scripts_Form/Comunes/sweetalert2.all.min.js"></script>
 
     <!-- Select2 -->
+    <script src="../Scripts/select2.min.js"></script>
+    <script src="../Scripts_Form/Comunes/Combos.js"></script>
+    <script src="../Scripts_Form/Comunes/Tablas.js"></script>
     <!--Librerías comunes de JavaScript para las Tablas -->
-    <!-- Impresión -->
+    <script src="../Scripts/jquery.dataTables.min.js"></script>
+    <script src="../Scripts/dataTables.bootstrap4.min.js"></script>
+    <!-- Impresión (jsPDF) -->
+    <script src="../Scripts_Form/Comunes/jspdf.min.js"></script>
     <!-- Para el script de control del form -->
     <script src="../Scripts_Form/frmIngreso.js"></script>
 </body>
