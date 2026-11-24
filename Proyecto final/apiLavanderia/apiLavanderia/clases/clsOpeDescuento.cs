@@ -14,15 +14,6 @@ namespace apiLavanderia.clases
         //Propiedad de entrada y salida con los datos del descuento
         public TblDescuento tblDescuento { get; set; }
 
-        //Combo: descuentos activos
-        public List<TblDescuento> listaDescuentos()
-        {
-            return ctx.TblDescuentos
-                .Where(x => x.Activo == true)
-                .OrderBy(x => x.IdTipoPrenda)
-                .ToList();
-        }
-
         //iqueryable: consultar el descuento por tipo de prenda
         public IQueryable descuentoXPrenda(int idPrenda)
         {
