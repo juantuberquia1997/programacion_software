@@ -32,20 +32,6 @@ namespace apiLavanderia.Controllers
             return oX.detalleIngreso(codIngreso);
         }
 
-        //Servicio de consulta: comando 2 = llenar tabla
-        [HttpGet("consultaIngreso")]
-        public IQueryable GetTabla(int comando, string dato)
-        {
-            clsOpeIngreso oX = new clsOpeIngreso(ctx);
-            switch (comando)
-            {
-                case 2: // Llenar tabla
-                    return oX.listarIngresosTabla();
-                default:
-                    return Enumerable.Empty<string>().AsQueryable();
-            }
-        }
-
         //Grabar el ingreso completo en la BD (maestro-detalle):
         //retorna el codigo de ingreso generado, 0 si fallo el grabado del
         //detalle (deshace el encabezado) o -1 en error general
@@ -73,15 +59,6 @@ namespace apiLavanderia.Controllers
             {
                 return -1; // Error general
             }
-        }
-
-        //Modificar los datos del encabezado del ingreso
-        [HttpPut("modificaEncabingreso")]
-        public string Put([FromBody] TblIngreso objIn)
-        {
-            clsOpeIngreso oX = new clsOpeIngreso(ctx);
-            oX.tblIngreso = objIn;
-            return oX.Modificar();
         }
     }
 }

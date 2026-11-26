@@ -15,33 +15,20 @@ namespace apiLavanderia.Controllers
             this.ctx = ctx;
         }
 
-        [HttpGet("listadoDescuentos")]
-        public List<TblDescuento> listarDescuentos()
-        {
-            clsOpeDescuento x = new clsOpeDescuento(ctx);
-            return x.listaDescuentos();
-        }
-
         //Descuento por tipo de prenda (para calcular el valor del detalle)
         [HttpGet("consultaDescuentoXPrenda")]
         public IQueryable consultarDescuentoXPrenda(int idPrenda)
         {
             clsOpeDescuento oX = new clsOpeDescuento(ctx);
             return oX.descuentoXPrenda(idPrenda);
-        }
+        } 
 
-        //Servicio de consulta: comando 2 = llenar tabla
-        [HttpGet("consultaDescuento")]
-        public IQueryable Get(int comando, string dato)
+        //Listado de descuentos para llenar la tabla
+        [HttpGet("listarDescuentosTabla")]
+        public IQueryable listarDescuentosTabla()
         {
             clsOpeDescuento oX = new clsOpeDescuento(ctx);
-            switch (comando)
-            {
-                case 2: // Llenar tabla
-                    return oX.listarDescuentosTabla();
-                default:
-                    return Enumerable.Empty<string>().AsQueryable();
-            }
+            return oX.listarDescuentosTabla();
         }
 
         //Servicio para agregar un registro

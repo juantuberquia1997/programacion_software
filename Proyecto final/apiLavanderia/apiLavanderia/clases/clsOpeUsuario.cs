@@ -61,21 +61,6 @@ namespace apiLavanderia.clases
                    };
         }
 
-        //iqueryable: listar todos los usuarios para llenar la tabla
-        public IQueryable listarUsuariosTabla()
-        {
-            return from IU in ctx.Set<TblUsuario>()
-                   join IE in ctx.Set<TblEmpleado>() on IU.EmpleadoIdEmpleado equals IE.IdEmpleado
-                   orderby IU.Usuario
-                   select new {
-                       editar   = "<a class='btn btn-info btn-sm' href=''><i class='fa fa-search-plus'></i> ir </a>",
-                       codigo   = IU.IdUsuarios,
-                       usuario  = IU.Usuario,
-                       empleado = IE.NombreApellidoEmp,
-                       activo   = IU.Activo
-                   }; // Los 5 <th></th> para la tabla
-        }
-
         //Agregar: retorna 0 = error de ejecucion, -1 = ya existe el registro,
         //o el codigo (clave primaria) del registro ingresado
         public int Agregar()

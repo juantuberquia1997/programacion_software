@@ -12,9 +12,6 @@ namespace apiLavanderia.clases
             this.ctx = ctx;
         }
 
-        //Propiedad con los datos del encabezado del ingreso
-        public TblIngreso tblIngreso { get; set; }
-
         //iqueryable: consultar el encabezado de un ingreso por su codigo
         public IQueryable consultarIngreso(int idIngreso)
         {
@@ -33,24 +30,6 @@ namespace apiLavanderia.clases
                        domicilio = IN.Domicilio,
                        activo    = IN.Activo
                    };
-        }
-
-        //iqueryable: listar todos los ingresos para llenar la tabla
-        public IQueryable listarIngresosTabla()
-        {
-            return from IN in ctx.Set<TblIngreso>()
-                   join IC in ctx.Set<TblCliente>() on IN.IdCliente equals IC.IdCliente
-                   join IE in ctx.Set<TblEmpleado>() on IN.EmpleadoIdEmpleado equals IE.IdEmpleado
-                   orderby IN.IdIngreso
-                   select new {
-                       editar   = "<a class='btn btn-info btn-sm' href=''><i class='fa fa-search-plus'></i> ir </a>",
-                       idIngreso = IN.IdIngreso,
-                       cliente   = IC.NombreApellidoCliente,
-                       empleado  = IE.NombreApellidoEmp,
-                       fecha     = IN.Fecha,
-                       domicilio = IN.Domicilio,
-                       activo    = IN.Activo
-                   }; // Los 7 <th></th> para la tabla
         }
 
         //iqueryable: detalle de un ingreso (prendas a lavar con su estado)
@@ -164,38 +143,6 @@ namespace apiLavanderia.clases
             catch
             {
                 return;
-            }
-        }
-
-        //Modificar el encabezado del ingreso usando la propiedad tblIngreso
-        public string Modificar()
-        {
-            try
-            {
-                if (tblIngreso.IdIngreso <= 0)
-                {
-                    return "Ingreso: " + tblIngreso.IdIngreso + ", no es valido.";
-                }
-
-                var p = ctx.TblIngresos.FirstOrDefault(x => x.IdIngreso == tblIngreso.IdIngreso);
-
-                if (p == null)
-                {
-                    return "Ingreso " + tblIngreso.IdIngreso + ", no existe.";
-                }
-
-                p.IdCliente = tblIngreso.IdCliente;
-                p.IdDireccion = tblIngreso.IdDireccion;
-                p.EmpleadoIdEmpleado = tblIngreso.EmpleadoIdEmpleado;
-                p.Domicilio = tblIngreso.Domicilio;
-                p.Activo = tblIngreso.Activo;
-
-                ctx.SaveChanges();
-                return "Ingreso: " + tblIngreso.IdIngreso + ", actualizado correctamente.";
-            }
-            catch
-            {
-                return "Error al actualizar ingreso.";
             }
         }
     }

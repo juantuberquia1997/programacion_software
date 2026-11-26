@@ -14,15 +14,6 @@ namespace apiLavanderia.clases
         //Propiedad de entrada y salida con los datos de la tarifa prenda-servicio
         public TblTipoPrendaServicio tblTipoPrendaServicio { get; set; }
 
-        //Combo: tarifas activas (servicio + prenda + valor unitario)
-        public List<TblTipoPrendaServicio> listaTipoPrendaServicios()
-        {
-            return ctx.TblTipoPrendaServicios
-                .Where(x => x.Activo == true)
-                .OrderBy(x => x.IdTipoPrendaServicio)
-                .ToList();
-        }
-
         //iqueryable: combo de tarifas activas con descripcion (servicio - prenda)
         public IQueryable comboTipoPrendaServicios()
         {
@@ -37,34 +28,6 @@ namespace apiLavanderia.clases
                        idPrenda      = PS.IdTipoPrenda,
                        valorUnitario = PS.ValorUnitario
                    };
-        }
-
-        //iqueryable: consultar el valor unitario de un servicio para una prenda
-        public IQueryable valorUnitarioXPrendaServicio(int idServicio, int idPrenda)
-        {
-            return from PS in ctx.Set<TblTipoPrendaServicio>()
-                   where PS.IdTipoServicio == idServicio && PS.IdTipoPrenda == idPrenda && PS.Activo == true
-                   select new {
-                       codigo       = PS.IdTipoPrendaServicio,
-                       valorUnit    = PS.ValorUnitario
-                   };
-        }
-
-        //iqueryable: listar todas las tarifas para llenar la tabla
-        public IQueryable listarTipoPrendaServiciosTabla()
-        {
-            return from PS in ctx.Set<TblTipoPrendaServicio>()
-                   join IS in ctx.Set<TblTipoServicio>() on PS.IdTipoServicio equals IS.IdTipoServicio
-                   join IP in ctx.Set<TblTipoPrenda>() on PS.IdTipoPrenda equals IP.IdTipoPrenda
-                   orderby IS.NombreServicio, IP.NombrePrenda
-                   select new {
-                       editar        = "<a class='btn btn-info btn-sm' href=''><i class='fa fa-search-plus'></i> ir </a>",
-                       codigo        = PS.IdTipoPrendaServicio,
-                       servicio      = IS.NombreServicio,
-                       prenda        = IP.NombrePrenda,
-                       valorUnitario = PS.ValorUnitario,
-                       activo        = PS.Activo
-                   }; // Los 6 <th></th> para la tabla
         }
 
         //Agregar: retorna 0 = error de ejecucion, -1 = ya existe el registro,
